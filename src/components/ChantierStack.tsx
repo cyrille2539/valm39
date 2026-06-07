@@ -141,7 +141,7 @@ export function ChantierStack({ chantier }: ChantierStackProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-charcoal/96 backdrop-blur-md p-4 sm:p-6"
+            className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-charcoal/96 backdrop-blur-md p-4 sm:p-6 overflow-y-auto"
             onClick={() => setOpen(false)}
           >
             {/* Fermer */}
@@ -172,7 +172,8 @@ export function ChantierStack({ chantier }: ChantierStackProps) {
               <button
                 onClick={prev}
                 aria-label="Photo précédente"
-                className={`hidden sm:flex shrink-0 items-center justify-center w-12 h-12 rounded-full bg-white/10 hover:bg-white/25 text-primary-foreground transition-colors backdrop-blur-sm ${total <= 1 ? "invisible" : ""}`}
+                className={`hidden sm:flex shrink-0 items-center justify-center w-12 h-12 rounded-full bg-primary/30 hover:bg-primary/60 transition-colors backdrop-blur-sm ${total <= 1 ? "invisible" : ""}`}
+                style={{ color: 'hsl(85, 45%, 65%)' }}
               >
                 <ChevronLeft className="h-6 w-6" />
               </button>
@@ -188,7 +189,8 @@ export function ChantierStack({ chantier }: ChantierStackProps) {
                     key={idx}
                     src={chantier.photos[idx].displayImg}
                     alt={chantier.photos[idx].title || chantier.nom}
-                    className="w-full rounded-2xl shadow-2xl"
+                    className="rounded-2xl shadow-2xl mx-auto object-contain"
+                    style={{ maxHeight: "65vh", maxWidth: "100%", width: "auto" }}
                     initial={{ opacity: 0, x: 30 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -30 }}
@@ -222,7 +224,8 @@ export function ChantierStack({ chantier }: ChantierStackProps) {
               <button
                 onClick={next}
                 aria-label="Photo suivante"
-                className={`hidden sm:flex shrink-0 items-center justify-center w-12 h-12 rounded-full bg-white/10 hover:bg-white/25 text-primary-foreground transition-colors backdrop-blur-sm ${total <= 1 ? "invisible" : ""}`}
+                className={`hidden sm:flex shrink-0 items-center justify-center w-12 h-12 rounded-full bg-primary/30 hover:bg-primary/60 transition-colors backdrop-blur-sm ${total <= 1 ? "invisible" : ""}`}
+                style={{ color: 'hsl(85, 45%, 65%)' }}
               >
                 <ChevronRight className="h-6 w-6" />
               </button>

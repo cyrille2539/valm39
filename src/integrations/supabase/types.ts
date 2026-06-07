@@ -56,6 +56,9 @@ export type Database = {
           after_image_url: string | null
           display_on: string[]
           sort_order: number
+          chantier_id: string | null
+          chantier_nom: string | null
+          chantier_description: string | null
           created_at: string
           updated_at: string
         }
@@ -70,6 +73,9 @@ export type Database = {
           after_image_url?: string | null
           display_on?: string[]
           sort_order?: number
+          chantier_id?: string | null
+          chantier_nom?: string | null
+          chantier_description?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -84,6 +90,9 @@ export type Database = {
           after_image_url?: string | null
           display_on?: string[]
           sort_order?: number
+          chantier_id?: string | null
+          chantier_nom?: string | null
+          chantier_description?: string | null
           created_at?: string
           updated_at?: string
         }

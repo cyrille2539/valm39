@@ -429,9 +429,13 @@ export default function Home() {
       {/* Footer */}
       <footer className="py-6 bg-charcoal border-t border-primary-foreground/10 lg:fixed lg:bottom-0 lg:left-0 lg:right-0 lg:z-40">
         <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span className="font-display text-xl font-bold text-primary-foreground/80">
-            Val<span className="text-primary">M39</span>
-          </span>
+          <div className="flex flex-col">
+            <span className="font-display text-xl font-bold text-primary-foreground/80">
+              Val<span className="text-primary">M39</span>
+            </span>
+            <span className="text-[10px] text-primary-foreground/30 tracking-wide">Lot la Combale, 39200 Saint-Claude</span>
+            <span className="text-[10px] text-primary-foreground/30 tracking-wide">SIRET 101 461 598 00019</span>
+          </div>
           <div className="flex items-center gap-6 text-sm text-primary-foreground/40">
             <Link href="/locations-saisonnieres" className="hover:text-primary transition-colors">Locations saisonnières</Link>
             <Link href="/investisseurs" className="hover:text-primary transition-colors">Investisseurs</Link>
