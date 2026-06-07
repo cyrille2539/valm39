@@ -17,9 +17,6 @@ interface Props {
   onSelect: (cat: Category) => void;
 }
 
-const CARD_W = 200;
-const CARD_H = Math.round(CARD_W * 1.618); // ≈ 323 px
-
 const SHADOW_3D = [
   "inset 0 1px 0 rgba(255,255,255,0.08)",
   "0 1px 0 rgba(0,0,0,0.46)", "0 2px 0 rgba(0,0,0,0.44)",
@@ -51,7 +48,21 @@ const GRAIN = `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http:
 export function CategoryCarousel({ cards, onSelect }: Props) {
   const n = cards.length;
   const STEP = 360 / n;
-  const RADIUS = Math.round((CARD_W + 40) / (2 * Math.sin(Math.PI / n)));
+
+  // Taille des cartes réactive — 140 px sur mobile, 200 px sur desktop
+  const [cardW, setCardW] = useState(200);
+  useEffect(() => {
+    const update = () => setCardW(window.innerWidth < 768 ? 140 : 200);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  const CARD_W    = cardW;
+  const CARD_H    = Math.round(CARD_W * 1.618);
+  const RADIUS    = Math.round((CARD_W + 40) / (2 * Math.sin(Math.PI / n)));
+  const LABEL_PX  = CARD_W >= 180 ? 18 : 13;
+  const CARD_PAD  = CARD_W >= 180 ? 20 : 14;
 
   const [frontIdx, setFrontIdx] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -66,9 +77,6 @@ export function CategoryCarousel({ cards, onSelect }: Props) {
   const RESUME_DELAY = 8000;
   const rotation = -(frontIdx * STEP) + dragDeg;
 
-  // Z-index explicite : évite les échecs de tri automatique du preserve-3d.
-  // cos(angle effectif) ∈ [-1, +1] → z-index ∈ [1, 101].
-  // Carte du dessus = angle 0 → cos = 1 → z-index 101.
   const getZIndex = (i: number) => {
     const angleDeg = i * STEP + rotation;
     return Math.round(Math.cos((angleDeg * Math.PI) / 180) * 50) + 51;
@@ -80,7 +88,6 @@ export function CategoryCarousel({ cards, onSelect }: Props) {
     resumeTimer.current = setTimeout(() => setPaused(false), RESUME_DELAY);
   };
 
-  // Clic volontaire → rotation arrêtée sans reprise automatique
   const pauseForever = () => {
     setPaused(true);
     if (resumeTimer.current) clearTimeout(resumeTimer.current);
@@ -120,9 +127,9 @@ export function CategoryCarousel({ cards, onSelect }: Props) {
   return (
     <div className="flex flex-col items-center gap-5 mb-14">
 
-      {/* ── Scène 3D ───────────────────────────────────────────────────────── */}
+      {/* ── Scène 3D — overflow:hidden pour clipper les cartes latérales sur mobile */}
       <div
-        className="w-full flex items-center justify-center select-none"
+        className="w-full overflow-hidden flex items-center justify-center select-none"
         style={{
           height: CARD_H + 80,
           perspective: 900,
@@ -207,11 +214,11 @@ export function CategoryCarousel({ cards, onSelect }: Props) {
                 )}
 
                 {/* Contenu */}
-                <div className="absolute inset-0 flex flex-col justify-end p-5">
+                <div className="absolute inset-0 flex flex-col justify-end" style={{ padding: CARD_PAD }}>
                   <h3 style={{
                     fontFamily: "Georgia, serif",
                     fontWeight: 700,
-                    fontSize: 18,
+                    fontSize: LABEL_PX,
                     color: "white",
                     margin: 0,
                     letterSpacing: "0.01em",
@@ -235,7 +242,7 @@ export function CategoryCarousel({ cards, onSelect }: Props) {
         </div>
       </div>
 
-      {/* ── Indicateur dots ─────────────────────────────────────────────────── */}
+      {/* ── Indicateur dots */}
       <div className="flex gap-2 items-center">
         {cards.map((card, i) => (
           <button
