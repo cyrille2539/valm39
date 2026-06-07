@@ -243,7 +243,7 @@ export default function Realisations() {
           <motion.p variants={fadeUp} className="text-olive-light font-display italic text-5xl mb-3">Votre projet</motion.p>
           <motion.h2 variants={fadeUp} className="font-display text-3xl sm:text-4xl font-bold text-primary-foreground mb-6">Notre prochaine réalisation</motion.h2>
           <motion.p variants={fadeUp} className="text-primary-foreground/70 mb-10 leading-relaxed">
-            Cuisine, parquet, cloisons, peinture ou encore électricité<br />décrivez votre projet et recevez un devis gratuit sous 24h,<br />clair et sans engagement.
+            Cuisine, parquet, cloisons, peinture ou encore électricité<br className="hidden sm:block" />décrivez votre projet et recevez un devis gratuit sous 24h, clair et sans engagement.
           </motion.p>
           <ContactForm source="realisations" />
           <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-4 text-primary-foreground/50 text-sm">

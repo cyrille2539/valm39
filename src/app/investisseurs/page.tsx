@@ -33,13 +33,13 @@ export default function Investisseurs() {
     <Layout>
       <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
         <motion.div className="absolute inset-0" initial={{ scale: 1.18 }} animate={{ scale: 1 }} transition={{ duration: 11, ease: [0.25, 0.46, 0.45, 0.94] }}>
-          <img src={heroHome} alt="Rénovation pour investisseurs immobiliers" className="w-full h-full object-cover" />
+          <img src={heroHome} alt="Rénovation pour investisseurs immobiliers" className="w-full h-full object-cover object-center" />
         </motion.div>
-        <div className="absolute inset-0 bg-gradient-to-r from-charcoal/90 via-charcoal/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b sm:bg-gradient-to-r from-charcoal/85 via-charcoal/60 to-charcoal/30 sm:to-transparent" />
         <motion.div className="absolute top-0 left-0 right-0 bg-charcoal z-10" initial={{ height: "50%" }} animate={{ height: 0 }} transition={{ delay: 0.1, duration: 0.9, ease: [0.76, 0, 0.24, 1] }} />
         <motion.div className="absolute bottom-0 left-0 right-0 bg-charcoal z-10" initial={{ height: "50%" }} animate={{ height: 0 }} transition={{ delay: 0.1, duration: 0.9, ease: [0.76, 0, 0.24, 1] }} />
 
-        <div className="relative z-20 max-w-6xl mx-auto px-6 flex items-center min-h-screen">
+        <div className="relative z-20 max-w-6xl mx-auto px-6 py-10 sm:py-20 w-full">
           <div className="max-w-2xl">
             <motion.p initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.9, duration: 0.5 }} className="text-primary font-display italic text-lg mb-4">
               Pour les investisseurs immobiliers
@@ -57,7 +57,7 @@ export default function Investisseurs() {
               </motion.span>
             </div>
             <motion.p initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.6, duration: 0.6 }} className="text-lg sm:text-xl text-primary-foreground/80 mb-8 leading-relaxed">
-              Une rénovation ciblée qui augmente la valeur locative et le prix de revente de vos biens<br />avec un ROI mesurable dès les premiers mois.
+              Une rénovation ciblée qui augmente la valeur locative et le prix de revente de vos biens<br className="hidden sm:block" />avec un ROI mesurable dès les premiers mois.
             </motion.p>
             <motion.div initial={{ opacity: 0, scale: 0.88 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 1.75, type: "spring", stiffness: 200, damping: 20 }}>
               <ShinyButton href="#contact" size="lg" variant="light">Étudier mon projet <ArrowRight className="h-5 w-5" /></ShinyButton>
@@ -97,7 +97,7 @@ export default function Investisseurs() {
           <motion.p variants={fadeUp} className="text-olive-light font-display italic text-5xl mb-3">Parlons de votre projet</motion.p>
           <motion.h2 variants={fadeUp} className="font-display text-3xl sm:text-4xl font-bold text-primary-foreground mb-6">Étudions ensemble votre investissement</motion.h2>
           <motion.p variants={fadeUp} className="text-primary-foreground/70 mb-10 leading-relaxed">
-            Décrivez-nous votre bien et vos objectifs. Nous vous recontactons sous 24h<br />avec une estimation chiffrée du potentiel de valorisation.
+            Décrivez-nous votre bien et vos objectifs. Nous vous recontactons sous 24h<br className="hidden sm:block" />avec une estimation chiffrée du potentiel de valorisation.
           </motion.p>
           <ContactForm source="investisseurs" />
           <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-4 text-primary-foreground/50 text-sm">

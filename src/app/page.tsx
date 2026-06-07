@@ -140,10 +140,10 @@ export default function Home() {
           <img
             src={heroHome}
             alt="Rénovation intérieure par ValM39 – cuisine, parquet et peinture"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover object-center"
           />
         </motion.div>
-        <div className="absolute inset-0 bg-gradient-to-r from-charcoal/90 via-charcoal/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b sm:bg-gradient-to-r from-charcoal/85 via-charcoal/60 to-charcoal/30 sm:to-transparent" />
         <motion.div
           className="absolute top-0 left-0 right-0 bg-charcoal z-10"
           initial={{ height: "50%" }}
@@ -167,7 +167,7 @@ export default function Home() {
           transition={{ delay: 1.0, duration: 1.2, ease: "easeInOut" }}
         />
 
-        <div className="relative z-20 max-w-6xl mx-auto px-6 flex items-center min-h-screen">
+        <div className="relative z-20 max-w-6xl mx-auto px-6 py-10 sm:py-20 w-full">
           <div className="max-w-2xl text-center mx-auto">
             <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-primary-foreground leading-tight mb-4">
               {"La qualité de finition".split(" ").map((word, i) => (
@@ -199,9 +199,7 @@ export default function Home() {
               transition={{ delay: 1.55, duration: 0.6, ease: "easeOut" }}
               className="text-lg sm:text-xl text-primary-foreground/80 mb-10 leading-relaxed"
             >
-              Cuisine, parquet, cloisons, peinture
-              <br />
-              Des travaux réalisés avec soin pour un intérieur qui vous ressemble.
+              Cuisine, parquet, cloisons, peinture<br className="hidden sm:block" />Des travaux réalisés avec soin pour un intérieur qui vous ressemble.
             </motion.p>
             <motion.div
               initial={{ opacity: 0, scale: 0.88 }}
