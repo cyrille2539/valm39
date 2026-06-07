@@ -9,7 +9,7 @@ import { MobileMenu } from "@/components/MobileMenu";
 
 export function Layout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-background font-body overflow-x-hidden">
+    <div className="min-h-screen bg-background font-body">
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border overflow-visible">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between overflow-visible">

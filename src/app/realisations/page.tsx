@@ -179,7 +179,7 @@ export default function Realisations() {
             </motion.p>
           </div>
 
-          <motion.div variants={fadeUp} className="mb-14">
+          <motion.div variants={fadeUp} className="mb-14" style={{ overflowX: "clip" }}>
             <CategoryCarousel cards={CATEGORY_CARDS} onSelect={setActiveFilter} />
           </motion.div>
 
