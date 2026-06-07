@@ -53,6 +53,26 @@ export function CategoryCarousel({ cards, onSelect }: Props) {
   const STEP = 360 / n;
   const RADIUS = Math.round((CARD_W + 40) / (2 * Math.sin(Math.PI / n)));
 
+  // Largeur visuelle native du cylindre : 2×RADIUS + CARD_W ≈ 754 px
+  const NATIVE_W = 2 * RADIUS + CARD_W;
+  const NATIVE_H = CARD_H + 80; // 40 px de marge haut/bas pour les ombres
+
+  // Mesure du container pour calculer l'échelle sans overflow:hidden brutal
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [containerW, setContainerW] = useState(NATIVE_W);
+
+  useEffect(() => {
+    const el = wrapperRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(entries => setContainerW(entries[0].contentRect.width));
+    ro.observe(el);
+    setContainerW(el.offsetWidth);
+    return () => ro.disconnect();
+  }, []);
+
+  // ≤ 1 : le carousel se réduit pour tenir, mais ne grossit jamais
+  const scale = containerW > 0 ? Math.min(1, containerW / NATIVE_W) : 1;
+
   const [frontIdx, setFrontIdx] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [dragDeg, setDragDeg] = useState(0);
@@ -67,8 +87,6 @@ export function CategoryCarousel({ cards, onSelect }: Props) {
   const rotation = -(frontIdx * STEP) + dragDeg;
 
   // Z-index explicite : évite les échecs de tri automatique du preserve-3d.
-  // cos(angle effectif) ∈ [-1, +1] → z-index ∈ [1, 101].
-  // Carte du dessus = angle 0 → cos = 1 → z-index 101.
   const getZIndex = (i: number) => {
     const angleDeg = i * STEP + rotation;
     return Math.round(Math.cos((angleDeg * Math.PI) / 180) * 50) + 51;
@@ -120,118 +138,155 @@ export function CategoryCarousel({ cards, onSelect }: Props) {
   return (
     <div className="flex flex-col items-center gap-5 mb-14">
 
-      {/* ── Scène 3D ───────────────────────────────────────────────────────── */}
+      {/*
+        Wrapper de mesure :
+        - height = NATIVE_H × scale  (réserve l'espace visuel exact)
+        - position:relative          (ancre l'enfant absolu)
+        - overflow:hidden            (empêche le scroll horizontal provoqué par
+                                      la scène native ≈754 px sur mobile)
+        Sur desktop (scale=1) : wrapper = NATIVE_H, scène centrée, rien coupé.
+        Sur mobile (scale<1)  : la scène (754 px) est scalée pour tenir dans
+                                containerW — l'overflow:hidden ne coupe aucun
+                                contenu visible (les ombres ≤36 px rentrent
+                                dans les 40 px de marge NATIVE_H).
+      */}
       <div
-        className="w-full flex items-center justify-center select-none"
+        ref={wrapperRef}
         style={{
-          height: CARD_H + 80,
-          perspective: 900,
-          touchAction: "none",
-          cursor: isDragging ? "grabbing" : "grab",
-        }}
-        onMouseDown={e => down(e.clientX)}
-        onMouseMove={e => move(e.clientX)}
-        onMouseUp={up}
-        onMouseLeave={up}
-        onTouchStart={e => down(e.touches[0].clientX)}
-        onTouchMove={e => { e.preventDefault(); move(e.touches[0].clientX); }}
-        onTouchEnd={up}
-      >
-        {/* Cylindre rotatif */}
-        <div style={{
-          width: CARD_W,
-          height: CARD_H,
+          width: "100%",
+          height: NATIVE_H * scale,
           position: "relative",
-          transformStyle: "preserve-3d",
-          transform: `rotateY(${rotation}deg)`,
-          transition: isDragging ? "none" : "transform 0.65s cubic-bezier(0.22, 1, 0.36, 1)",
-        }}>
-          {cards.map((card, i) => {
-            const isActive = frontIdx === i;
-            return (
-              <div
-                key={card.value}
-                onClick={() => goTo(i)}
-                style={{
-                  position: "absolute",
-                  width: CARD_W,
-                  height: CARD_H,
-                  left: 0, top: 0,
-                  transform: `rotateY(${i * STEP}deg) translateZ(${RADIUS}px)`,
-                  borderRadius: 16,
-                  overflow: "hidden",
-                  background: card.gradient,
-                  boxShadow: SHADOW_3D,
-                  cursor: "pointer",
-                  zIndex: getZIndex(i),
-                }}
-              >
-                {/* Photo */}
-                <img
-                  src={card.img} alt={card.label}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  style={{ pointerEvents: "none" }}
-                  draggable={false}
-                />
+        }}
+      >
+        {/*
+          Scène native (NATIVE_W × NATIVE_H) positionnée en absolu.
+          left = (containerW - NATIVE_W) / 2  → centre l'élément horizontalement.
+          transformOrigin: 'top center'        → le pivot de scale est le centre
+                                                 horizontal de la scène.
+          Résultat : sur mobile, la scène remplit exactement 0…containerW px.
+        */}
+        <div
+          style={{
+            position: "absolute",
+            left: (containerW - NATIVE_W) / 2,
+            top: 0,
+            width: NATIVE_W,
+            height: NATIVE_H,
+            transform: scale < 1 ? `scale(${scale})` : undefined,
+            transformOrigin: "top center",
+            touchAction: "none",
+            cursor: isDragging ? "grabbing" : "grab",
+          }}
+          onMouseDown={e => down(e.clientX)}
+          onMouseMove={e => move(e.clientX)}
+          onMouseUp={up}
+          onMouseLeave={up}
+          onTouchStart={e => down(e.touches[0].clientX)}
+          onTouchMove={e => { e.preventDefault(); move(e.touches[0].clientX); }}
+          onTouchEnd={up}
+        >
+          {/* ── Scène perspective ── */}
+          <div
+            className="w-full h-full flex items-center justify-center select-none"
+            style={{ perspective: 900 }}
+          >
+            {/* Cylindre rotatif */}
+            <div style={{
+              width: CARD_W,
+              height: CARD_H,
+              position: "relative",
+              transformStyle: "preserve-3d",
+              transform: `rotateY(${rotation}deg)`,
+              transition: isDragging ? "none" : "transform 0.65s cubic-bezier(0.22, 1, 0.36, 1)",
+            }}>
+              {cards.map((card, i) => {
+                const isActive = frontIdx === i;
+                return (
+                  <div
+                    key={card.value}
+                    onClick={() => goTo(i)}
+                    style={{
+                      position: "absolute",
+                      width: CARD_W,
+                      height: CARD_H,
+                      left: 0, top: 0,
+                      transform: `rotateY(${i * STEP}deg) translateZ(${RADIUS}px)`,
+                      borderRadius: 16,
+                      overflow: "hidden",
+                      background: card.gradient,
+                      boxShadow: SHADOW_3D,
+                      cursor: "pointer",
+                      zIndex: getZIndex(i),
+                    }}
+                  >
+                    {/* Photo */}
+                    <img
+                      src={card.img} alt={card.label}
+                      className="absolute inset-0 w-full h-full object-cover"
+                      style={{ pointerEvents: "none" }}
+                      draggable={false}
+                    />
 
-                {/* Grain artisanal */}
-                <div
-                  className="absolute inset-0 opacity-[0.12] mix-blend-overlay pointer-events-none"
-                  style={{ backgroundImage: GRAIN }}
-                />
+                    {/* Grain artisanal */}
+                    <div
+                      className="absolute inset-0 opacity-[0.12] mix-blend-overlay pointer-events-none"
+                      style={{ backgroundImage: GRAIN }}
+                    />
 
-                {/* Voile chaud */}
-                <div className="absolute inset-0 pointer-events-none"
-                  style={{ background: "linear-gradient(to bottom, rgba(240,232,218,0.20) 0%, rgba(175,150,115,0.20) 100%)" }}
-                />
+                    {/* Voile chaud */}
+                    <div className="absolute inset-0 pointer-events-none"
+                      style={{ background: "linear-gradient(to bottom, rgba(240,232,218,0.20) 0%, rgba(175,150,115,0.20) 100%)" }}
+                    />
 
-                {/* Overlay sombre bas → haut */}
-                <div className="absolute inset-0 pointer-events-none"
-                  style={{ background: "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.50) 60%, rgba(0,0,0,0.20) 100%)" }}
-                />
+                    {/* Overlay sombre bas → haut */}
+                    <div className="absolute inset-0 pointer-events-none"
+                      style={{ background: "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.50) 60%, rgba(0,0,0,0.20) 100%)" }}
+                    />
 
-                {/* Biseau verre sablé */}
-                <div className="absolute inset-0 rounded-2xl pointer-events-none" style={{
-                  background: "linear-gradient(160deg, rgba(255,255,255,0.08) 0%, transparent 55%)",
-                  borderTop: "1px solid rgba(255,255,255,0.22)",
-                  borderLeft: "1px solid rgba(255,255,255,0.16)",
-                  borderBottom: "1px solid transparent",
-                  borderRight: "1px solid transparent",
-                }} />
+                    {/* Biseau verre sablé */}
+                    <div className="absolute inset-0 rounded-2xl pointer-events-none" style={{
+                      background: "linear-gradient(160deg, rgba(255,255,255,0.08) 0%, transparent 55%)",
+                      borderTop: "1px solid rgba(255,255,255,0.22)",
+                      borderLeft: "1px solid rgba(255,255,255,0.16)",
+                      borderBottom: "1px solid transparent",
+                      borderRight: "1px solid transparent",
+                    }} />
 
-                {/* Anneau actif */}
-                {isActive && (
-                  <div className="absolute inset-0 rounded-2xl pointer-events-none"
-                    style={{ boxShadow: `inset 0 0 0 1.5px ${card.accentColor}55` }}
-                  />
-                )}
+                    {/* Anneau actif */}
+                    {isActive && (
+                      <div className="absolute inset-0 rounded-2xl pointer-events-none"
+                        style={{ boxShadow: `inset 0 0 0 1.5px ${card.accentColor}55` }}
+                      />
+                    )}
 
-                {/* Contenu */}
-                <div className="absolute inset-0 flex flex-col justify-end p-5">
-                  <h3 style={{
-                    fontFamily: "Georgia, serif",
-                    fontWeight: 700,
-                    fontSize: 18,
-                    color: "white",
-                    margin: 0,
-                    letterSpacing: "0.01em",
-                  }}>
-                    {card.label}
-                  </h3>
-                </div>
+                    {/* Contenu */}
+                    <div className="absolute inset-0 flex flex-col justify-end p-5">
+                      <h3 style={{
+                        fontFamily: "Georgia, serif",
+                        fontWeight: 700,
+                        fontSize: 18,
+                        color: "white",
+                        margin: 0,
+                        letterSpacing: "0.01em",
+                      }}>
+                        {card.label}
+                      </h3>
+                    </div>
 
-                {/* Point accentué */}
-                {isActive && (
-                  <div style={{
-                    position: "absolute", top: 14, right: 14,
-                    width: 7, height: 7, borderRadius: "50%",
-                    background: card.accentColor,
-                    boxShadow: `0 0 10px ${card.accentColor}`,
-                  }} />
-                )}
-              </div>
-            );
-          })}
+                    {/* Point accentué */}
+                    {isActive && (
+                      <div style={{
+                        position: "absolute", top: 14, right: 14,
+                        width: 7, height: 7, borderRadius: "50%",
+                        background: card.accentColor,
+                        boxShadow: `0 0 10px ${card.accentColor}`,
+                      }} />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
 
