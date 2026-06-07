@@ -14,14 +14,14 @@ export function Layout({ children }: { children: ReactNode }) {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border overflow-visible">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between overflow-visible">
           <Link href="/"><AnimatedLogo /></Link>
-          {/* Mobile / tablette : hamburger — Desktop : RulerNav */}
+          {/* Mobile / tablette : CTA seul — nav via bottom bar */}
           <div className="flex items-center gap-3 lg:hidden">
             <ShinyButton href="#contact" size="sm" variant="light" magnetic={false} lightBg>
               <span className="sm:hidden">Devis</span>
               <span className="hidden sm:inline">Devis gratuit</span>
             </ShinyButton>
-            <MobileMenu />
           </div>
+          {/* Desktop : RulerNav */}
           <div className="hidden lg:block">
             <RulerNav />
           </div>
@@ -31,7 +31,7 @@ export function Layout({ children }: { children: ReactNode }) {
       {children}
 
       {/* Footer — fixe en desktop, normal en mobile/tablette */}
-      <footer className="py-6 bg-charcoal border-t border-primary-foreground/10 lg:fixed lg:bottom-0 lg:left-0 lg:right-0 lg:z-40">
+      <footer className="pt-6 pb-[calc(1.5rem+4rem+env(safe-area-inset-bottom,0px))] lg:py-6 bg-charcoal border-t border-primary-foreground/10 lg:fixed lg:bottom-0 lg:left-0 lg:right-0 lg:z-40">
         <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <Link href="/" className="flex flex-col">
             <span className="font-display text-xl font-bold text-primary-foreground/80">
@@ -63,6 +63,9 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
         </div>
       </footer>
+
+      {/* Bottom nav bar — mobile/tablette uniquement */}
+      <MobileMenu />
     </div>
   );
 }
