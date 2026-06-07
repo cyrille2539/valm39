@@ -95,9 +95,9 @@ export function VerticalCarousel({
       <div className="sticky top-0 h-screen flex flex-col overflow-hidden pb-20">
 
         {/* En-tête */}
-        <div className="pt-24 px-8 sm:px-16 pb-6 shrink-0 text-center">
-          <p className="text-primary font-display italic text-5xl mb-2">{eyebrow}</p>
-          <h2 className="font-display text-3xl sm:text-4xl font-bold text-charcoal-soft">{title}</h2>
+        <div className="pt-20 sm:pt-24 px-6 sm:px-16 pb-4 sm:pb-6 shrink-0 text-center">
+          <p className="text-primary font-display italic text-4xl sm:text-5xl mb-2">{eyebrow}</p>
+          <h2 className="font-display text-2xl sm:text-3xl sm:text-4xl font-bold text-charcoal-soft">{title}</h2>
         </div>
 
         {/* Zone carousel */}
