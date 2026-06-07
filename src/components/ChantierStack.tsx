@@ -173,9 +173,8 @@ export function ChantierStack({ chantier }: ChantierStackProps) {
                 onClick={prev}
                 aria-label="Photo précédente"
                 className={`hidden sm:flex shrink-0 items-center justify-center w-12 h-12 rounded-full bg-primary/30 hover:bg-primary/60 transition-colors backdrop-blur-sm ${total <= 1 ? "invisible" : ""}`}
-                style={{ color: 'hsl(85, 45%, 65%)' }}
               >
-                <ChevronLeft className="h-6 w-6" />
+                <ChevronLeft className="h-6 w-6" style={{ color: 'hsl(85, 45%, 65%)', stroke: 'hsl(85, 45%, 65%)' }} />
               </button>
 
               {/* Image avec swipe tactile */}
@@ -225,9 +224,8 @@ export function ChantierStack({ chantier }: ChantierStackProps) {
                 onClick={next}
                 aria-label="Photo suivante"
                 className={`hidden sm:flex shrink-0 items-center justify-center w-12 h-12 rounded-full bg-primary/30 hover:bg-primary/60 transition-colors backdrop-blur-sm ${total <= 1 ? "invisible" : ""}`}
-                style={{ color: 'hsl(85, 45%, 65%)' }}
               >
-                <ChevronRight className="h-6 w-6" />
+                <ChevronRight className="h-6 w-6" style={{ color: 'hsl(85, 45%, 65%)', stroke: 'hsl(85, 45%, 65%)' }} />
               </button>
             </div>
           </motion.div>
