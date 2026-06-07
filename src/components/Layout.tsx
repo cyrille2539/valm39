@@ -5,6 +5,7 @@ import Link from "next/link";
 import AnimatedLogo from "@/components/AnimatedLogo";
 import { RulerNav } from "@/components/RulerNav";
 import { ShinyButton } from "@/components/ui/shiny-button";
+import { MobileMenu } from "@/components/MobileMenu";
 
 export function Layout({ children }: { children: ReactNode }) {
   return (
@@ -13,12 +14,13 @@ export function Layout({ children }: { children: ReactNode }) {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border overflow-visible">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between overflow-visible">
           <Link href="/"><AnimatedLogo /></Link>
-          {/* Mobile / tablette : CTA — Desktop : RulerNav */}
-          <div className="lg:hidden">
+          {/* Mobile / tablette : hamburger — Desktop : RulerNav */}
+          <div className="flex items-center gap-3 lg:hidden">
             <ShinyButton href="#contact" size="sm" variant="light" magnetic={false} lightBg>
-              <span className="sm:hidden">Devis gratuit</span>
-              <span className="hidden sm:inline">Demander un devis gratuit</span>
+              <span className="sm:hidden">Devis</span>
+              <span className="hidden sm:inline">Devis gratuit</span>
             </ShinyButton>
+            <MobileMenu />
           </div>
           <div className="hidden lg:block">
             <RulerNav />

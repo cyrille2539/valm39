@@ -5,6 +5,7 @@ import { useState } from "react";
 import { ArrowRight, Award } from "lucide-react";
 import { PhoneLink } from "@/components/PhoneLink";
 import { ContactForm } from "@/components/ContactForm";
+import { MobileMenu } from "@/components/MobileMenu";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import Link from "next/link";
 import AnimatedLogo from "@/components/AnimatedLogo";
@@ -114,11 +115,12 @@ export default function Home() {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border overflow-visible">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between overflow-visible">
           <AnimatedLogo />
-          <div className="lg:hidden">
+          <div className="flex items-center gap-3 lg:hidden">
             <ShinyButton href="#contact" size="sm" variant="light" magnetic={false} lightBg>
-              <span className="sm:hidden">Devis gratuit</span>
-              <span className="hidden sm:inline">Demander un devis gratuit</span>
+              <span className="sm:hidden">Devis</span>
+              <span className="hidden sm:inline">Devis gratuit</span>
             </ShinyButton>
+            <MobileMenu />
           </div>
           <div className="hidden lg:block">
             <RulerNav />
