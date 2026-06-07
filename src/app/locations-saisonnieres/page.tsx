@@ -42,7 +42,7 @@ export default function CoupDeCoeur() {
         <motion.div className="absolute top-0 left-0 right-0 bg-charcoal z-10" initial={{ height: "50%" }} animate={{ height: 0 }} transition={{ delay: 0.1, duration: 0.9, ease: [0.76, 0, 0.24, 1] }} />
         <motion.div className="absolute bottom-0 left-0 right-0 bg-charcoal z-10" initial={{ height: "50%" }} animate={{ height: 0 }} transition={{ delay: 0.1, duration: 0.9, ease: [0.76, 0, 0.24, 1] }} />
 
-        <div className="relative z-20 max-w-6xl mx-auto px-6 py-10 sm:py-20">
+        <div className="relative z-20 max-w-6xl mx-auto px-6 pt-20 pb-10 sm:py-20">
           <div className="max-w-3xl">
             <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-primary-foreground leading-tight mb-2">
               <div>

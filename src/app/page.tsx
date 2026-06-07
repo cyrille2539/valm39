@@ -167,7 +167,7 @@ export default function Home() {
           transition={{ delay: 1.0, duration: 1.2, ease: "easeInOut" }}
         />
 
-        <div className="relative z-20 max-w-6xl mx-auto px-6 py-10 sm:py-20 w-full">
+        <div className="relative z-20 max-w-6xl mx-auto px-6 pt-20 pb-10 sm:py-20 w-full">
           <div className="max-w-2xl text-center mx-auto">
             <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-primary-foreground leading-tight mb-4">
               {"La qualité de finition".split(" ").map((word, i) => (
@@ -437,7 +437,7 @@ export default function Home() {
             <span className="text-[10px] text-primary-foreground/30 tracking-wide">Lot la Combale, 39200 Saint-Claude</span>
             <span className="text-[10px] text-primary-foreground/30 tracking-wide">SIRET 101 461 598 00019</span>
           </div>
-          <div className="flex items-center gap-6 text-sm text-primary-foreground/40">
+          <div className="hidden sm:flex items-center gap-6 text-sm text-primary-foreground/40">
             <Link href="/locations-saisonnieres" className="hover:text-primary transition-colors">Locations saisonnières</Link>
             <Link href="/investisseurs" className="hover:text-primary transition-colors">Investisseurs</Link>
             <Link href="/agences-immobilieres" className="hover:text-primary transition-colors">Agences</Link>

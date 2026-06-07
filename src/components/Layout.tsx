@@ -40,7 +40,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <span className="text-[10px] text-primary-foreground/30 tracking-wide">Lot la Combale, 39200 Saint-Claude</span>
             <span className="text-[10px] text-primary-foreground/30 tracking-wide">SIRET 101 461 598 00019</span>
           </Link>
-          <div className="flex items-center gap-6 text-sm text-primary-foreground/40">
+          <div className="hidden sm:flex items-center gap-6 text-sm text-primary-foreground/40">
             <Link href="/locations-saisonnieres" className="hover:text-primary transition-colors">
               Locations saisonnières
             </Link>
