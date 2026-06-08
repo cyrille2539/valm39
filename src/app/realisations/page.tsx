@@ -95,6 +95,7 @@ export default function Realisations() {
   const [activeFilter, setActiveFilter] = useState<Category>("tout");
   const [chantiers, setChantiers]       = useState<Chantier[]>(MOCK_CHANTIERS);
   const [loading, setLoading]           = useState(true);
+  const [gridHovered, setGridHovered]   = useState(false);
 
   usePageMeta({
     title: "Réalisations rénovation intérieure Jura (39) | ValM39",
@@ -180,9 +181,10 @@ export default function Realisations() {
           </div>
 
           <motion.div variants={fadeUp} className="mb-14" style={{ overflowX: "clip" }}>
-            <CategoryCarousel cards={CATEGORY_CARDS} onSelect={setActiveFilter} />
+            <CategoryCarousel cards={CATEGORY_CARDS} onSelect={setActiveFilter} externalPaused={gridHovered} />
           </motion.div>
 
+          <div onMouseEnter={() => setGridHovered(true)} onMouseLeave={() => setGridHovered(false)}>
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-20 gap-y-20">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -204,6 +206,7 @@ export default function Realisations() {
               ))}
             </motion.div>
           )}
+          </div>
 
           <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.4, duration: 0.6 }} className="text-center text-muted-foreground/50 text-sm mt-14">
             Galerie enrichie régulièrement — nouvelles réalisations à venir
