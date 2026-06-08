@@ -196,7 +196,7 @@ export default function Realisations() {
           ) : filtered.length === 0 ? (
             <p className="text-center text-muted-foreground py-16">Aucune réalisation dans cette catégorie pour l'instant.</p>
           ) : (
-            <motion.div key={activeFilter} initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-20 gap-y-20 px-4 sm:px-6">
+            <motion.div key={activeFilter} initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-20 gap-y-20 px-6">
               {filtered.map(chantier => (
                 <motion.div key={chantier.id} variants={fadeUp} className="relative hover:z-10">
                   <ChantierStack chantier={chantier} />

@@ -42,15 +42,16 @@ const FAN_2 = [
 ];
 const FAN_1 = [{ rotate: 0, x: 0, y: -6, dim: false }];
 
-// Fan mobile — rotation seule, sans déplacement horizontal (évite tout débordement viewport)
+// Fan mobile — angle réduit à ±8° : rotate ±12° étend la carte de H/2×sin(12°)≈50px
+// au-delà du container même sans déplacement x, ce qui déborde du viewport
 const FAN_3_MOBILE = [
-  { rotate: -12, x: 0, y: 10,  dim: true  },
-  { rotate:   0, x: 0, y: -14, dim: false },
-  { rotate:  12, x: 0, y: 10,  dim: true  },
+  { rotate: -8, x: 0, y: 10,  dim: true  },
+  { rotate:  0, x: 0, y: -12, dim: false },
+  { rotate:  8, x: 0, y: 10,  dim: true  },
 ];
 const FAN_2_MOBILE = [
-  { rotate: -8, x: 0, y: 8,  dim: true  },
-  { rotate:  8, x: 0, y: 8,  dim: false },
+  { rotate: -6, x: 0, y: 8,  dim: true  },
+  { rotate:  6, x: 0, y: 8,  dim: false },
 ];
 
 function getConfigs(n: number, mobile: boolean) {
@@ -138,7 +139,7 @@ export function ChantierStack({ chantier }: ChantierStackProps) {
         {/* ── Infos ── */}
         <motion.div
           className="px-1"
-          animate={{ marginTop: hovered ? 44 : 16 }}
+          animate={{ marginTop: (hovered && cards.length > 1) ? 44 : 16 }}
           transition={{ type: "spring", stiffness: 300, damping: 26 }}
         >
           <p className="font-display font-bold text-charcoal-soft text-base leading-tight group-hover:text-primary transition-colors duration-300">
