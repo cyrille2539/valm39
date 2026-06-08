@@ -136,7 +136,11 @@ export function ChantierStack({ chantier }: ChantierStackProps) {
         </div>
 
         {/* ── Infos ── */}
-        <div className="mt-4 px-1">
+        <motion.div
+          className="px-1"
+          animate={{ marginTop: hovered ? 44 : 16 }}
+          transition={{ type: "spring", stiffness: 300, damping: 26 }}
+        >
           <p className="font-display font-bold text-charcoal-soft text-base leading-tight group-hover:text-primary transition-colors duration-300">
             {chantier.nom}
           </p>
@@ -145,7 +149,7 @@ export function ChantierStack({ chantier }: ChantierStackProps) {
               {chantier.description}
             </p>
           )}
-        </div>
+        </motion.div>
       </div>
 
       {/* ── Lightbox ── */}
