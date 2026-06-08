@@ -86,7 +86,8 @@ export function ChantierStack({ chantier }: ChantierStackProps) {
   return (
     <>
       <div
-        className="cursor-pointer group"
+        className="cursor-pointer group relative"
+        style={{ zIndex: hovered ? 10 : 1 }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         onClick={() => { setIdx(0); setOpen(true); }}
