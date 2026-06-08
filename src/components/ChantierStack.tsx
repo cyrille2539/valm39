@@ -42,15 +42,15 @@ const FAN_2 = [
 ];
 const FAN_1 = [{ rotate: 0, x: 0, y: -6, dim: false }];
 
-// Fan réduit pour mobile — x ≤ 18px pour rester dans le padding (px-6 = 24px)
+// Fan mobile — rotation seule, sans déplacement horizontal (évite tout débordement viewport)
 const FAN_3_MOBILE = [
-  { rotate: -12, x: -18, y: 6,   dim: true  },
-  { rotate:   0, x:   0, y: -12, dim: false },
-  { rotate:  12, x:  18, y: 6,   dim: true  },
+  { rotate: -12, x: 0, y: 10,  dim: true  },
+  { rotate:   0, x: 0, y: -14, dim: false },
+  { rotate:  12, x: 0, y: 10,  dim: true  },
 ];
 const FAN_2_MOBILE = [
-  { rotate: -8, x: -14, y: 4,  dim: true  },
-  { rotate:  8, x:  14, y: 4,  dim: false },
+  { rotate: -8, x: 0, y: 8,  dim: true  },
+  { rotate:  8, x: 0, y: 8,  dim: false },
 ];
 
 function getConfigs(n: number, mobile: boolean) {
