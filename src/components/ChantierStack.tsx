@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Category } from "@/components/CategoryCarousel";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export interface ChantierPhoto {
   id: string;
@@ -29,7 +30,7 @@ const STACK_3 = [
 const STACK_2 = [STACK_3[1], STACK_3[2]];
 const STACK_1 = [STACK_3[2]];
 
-// Positions du fan au hover
+// Positions du fan au hover — desktop
 const FAN_3 = [
   { rotate: -12, x: -36, y: 6,   dim: true  },
   { rotate:   0, x:   0, y: -12, dim: false },
@@ -41,9 +42,20 @@ const FAN_2 = [
 ];
 const FAN_1 = [{ rotate: 0, x: 0, y: -6, dim: false }];
 
-function getConfigs(n: number) {
-  if (n >= 3) return { stack: STACK_3, fan: FAN_3 };
-  if (n === 2) return { stack: STACK_2, fan: FAN_2 };
+// Fan réduit pour mobile — x ≤ 18px pour rester dans le padding (px-6 = 24px)
+const FAN_3_MOBILE = [
+  { rotate: -12, x: -18, y: 6,   dim: true  },
+  { rotate:   0, x:   0, y: -12, dim: false },
+  { rotate:  12, x:  18, y: 6,   dim: true  },
+];
+const FAN_2_MOBILE = [
+  { rotate: -8, x: -14, y: 4,  dim: true  },
+  { rotate:  8, x:  14, y: 4,  dim: false },
+];
+
+function getConfigs(n: number, mobile: boolean) {
+  if (n >= 3) return { stack: STACK_3, fan: mobile ? FAN_3_MOBILE : FAN_3 };
+  if (n === 2) return { stack: STACK_2, fan: mobile ? FAN_2_MOBILE : FAN_2 };
   return { stack: STACK_1, fan: FAN_1 };
 }
 
@@ -57,9 +69,10 @@ export function ChantierStack({ chantier }: ChantierStackProps) {
   const [idx, setIdx]         = useState(0);
   const touchStartX           = useRef<number | null>(null);
 
+  const isMobile = useIsMobile();
   const cards  = chantier.photos.slice(0, 3);
   const total  = chantier.photos.length;
-  const { stack, fan } = getConfigs(cards.length);
+  const { stack, fan } = getConfigs(cards.length, isMobile === true);
 
   const prev = (e: React.MouseEvent) => {
     e.stopPropagation();
