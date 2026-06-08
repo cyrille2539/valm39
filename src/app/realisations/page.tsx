@@ -198,7 +198,7 @@ export default function Realisations() {
           ) : (
             <motion.div key={activeFilter} initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-20 gap-y-20">
               {filtered.map(chantier => (
-                <motion.div key={chantier.id} variants={fadeUp}>
+                <motion.div key={chantier.id} variants={fadeUp} className="relative hover:z-10">
                   <ChantierStack chantier={chantier} />
                 </motion.div>
               ))}
