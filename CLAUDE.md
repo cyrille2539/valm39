@@ -85,11 +85,16 @@ La courbe d'animation standard est `cubic-bezier(0.22, 1, 0.36, 1)` (easing spri
 - Type `Category` : `"tout" | "cuisine" | "parquet" | "cloisons" | "peinture" | "électricité" | "autres"`.
 - Z-index explicite via `Math.round(Math.cos(angleDeg × π / 180) × 50) + 51`. **Ne jamais ajouter `backdropFilter` aux cartes** — ça casse le z-sort.
 - Clic sur une carte → `pauseForever()`. Drag → `pause()` (reprise après 8 s). Ne pas fusionner ces deux fonctions.
-- **Responsive mobile** : un `ResizeObserver` mesure le container ; `scale = min(1, containerW / NATIVE_W)` est appliqué via `transform: scale()` sur la scène positionnée en absolu. Le scroll horizontal est géré par `overflow-x-hidden` sur `Layout`, pas par `overflow: hidden` sur le carousel (qui couperait la carte avant grossie ×1.44 par la perspective).
+- Prop `externalPaused?: boolean` — quand `true`, stoppe la rotation et annule le timer de reprise interne. Utilisé depuis `realisations/page.tsx` via `gridHovered` pour stopper le carousel quand la souris est sur la grille des chantiers.
+- **Responsive mobile** : un `ResizeObserver` mesure le container ; `scale = min(1, containerW / NATIVE_W)` est appliqué via `transform: scale()` sur la scène positionnée en absolu. Le débordement horizontal est contenu par `overflow-x: clip` sur le wrapper du carousel dans `realisations/page.tsx` (pas `overflow: hidden` qui couperait la carte avant grossie ×1.44 par la perspective).
 
 **`ChantierStack`** — pile de 1 à 3 cartes par chantier, aspect-ratio `1/1.618`.
-- Fan au hover : ±12° / ±36px. Grille : `gap-x-20 gap-y-20` minimum.
-- Lightbox intégrée avec chevrons `hidden sm:flex` et swipe touch (delta > 50px).
+- **Fan au hover** : desktop `rotate ±12°, x ±36px` ; mobile (`useIsMobile() === true`) `rotate ±8°, x 0`.
+- **Géométrie critique** : une carte de ratio 1/1.618 rotée à θ° s'étend horizontalement de `H/2 × sin(θ)` au-delà de son container *même sans déplacement x*. À 12°, c'est ≈ 50 px. Réduire l'angle si les cartes débordent du viewport.
+- Marge viewport sûre : `card_center_from_edge ≥ |x| + W/2×cos(θ) + H/2×sin(θ)`. Avec `px-6` section + `px-6` grille = 48 px total, angle ≤ 8° et x = 0 tient sur 375 px.
+- **Z-index** : `position: relative` + `zIndex: hovered ? 10 : 1` sur le wrapper root. `hover:z-10 relative` sur les `motion.div` wrappers de la grille (pas en interne — le `motion.div` crée un stacking context qui confinerait le z-index enfant).
+- **Titre** : `marginTop` animé via Framer Motion spring (16 → 44 px), **uniquement si `cards.length > 1`** — les cartes fan en `rotate ±12°, y +6` débordent de ~34 px sous le container et couvrent le titre avec `mt-4` seul.
+- Lightbox intégrée avec chevrons `hidden sm:flex` et swipe touch (delta > 50 px).
 
 **`ServiceCard`** — expand-on-hover avec ratio d'or.
 - `cardRef` doit être sur l'élément qui EST le flex item direct.
@@ -106,16 +111,22 @@ La courbe d'animation standard est `cubic-bezier(0.22, 1, 0.36, 1)` (easing spri
 - `lightBg` obligatoire sur fond clair. `magnetic={false}` dans la nav.
 
 **`useIsMobile()`** (`src/hooks/use-mobile.tsx`) — breakpoint `768px` (`max-width: 767px`).
-- Retourne `undefined` au premier rendu SSR, puis `boolean` après hydratation. Ne jamais utiliser dans des calculs de layout qui s'exécutent au rendu initial sans vérifier `!== undefined`.
+- Retourne `false` au premier rendu SSR (via `!!isMobile` qui convertit `undefined` en `false`), puis la vraie valeur après hydratation. Toujours un `boolean`, jamais `undefined`.
 
 **`Layout`** (`src/components/Layout.tsx`) — wrapper partagé pour toutes les pages sauf Home.
-- `overflow-x-hidden` sur le div racine pour contenir les débordements horizontaux (ex. carousel mobile).
+- Div racine : `min-h-screen bg-background font-body` — pas d'`overflow` sur ce div, intentionnellement.
 - Footer `lg:fixed lg:bottom-0` — fixe uniquement sur desktop ; en flux normal sur mobile/tablette.
 - `MobileMenu` (bottom nav) rendu après le footer, visible uniquement `lg:hidden`.
 
 ### Page Réalisations
 
 `realisations/page.tsx` groupe les `media_items` par `chantier_id`. Fallback : `MOCK_CHANTIERS` (4 chantiers définis dans le fichier). `CATEGORY_CARDS` définit les 7 filtres du carousel. Filtrage : `activeFilter === "tout"` montre tout, sinon `chantier.categorie === activeFilter`.
+
+Points d'architecture spécifiques :
+- Le wrapper `CategoryCarousel` a `style={{ overflowX: "clip" }}` — coupe le débordement horizontal du carousel sans créer de scroll container (contrairement à `overflow: hidden`).
+- `gridHovered` state → `externalPaused={gridHovered}` sur `CategoryCarousel` — stoppe la rotation quand la souris est sur la grille.
+- Grille : `px-6` en plus du `px-6` de la section parent = 48 px total depuis le bord viewport, nécessaire pour que le fan (rotation + déplacement) reste visible.
+- `motion.div` wrappers de la grille : `className="relative hover:z-10"` — élève la cellule survolée au-dessus de ses voisines (les `motion.div` créent des stacking contexts qui empêchent le z-index interne de ChantierStack de fonctionner entre cellules).
 
 ### Structure de page.tsx (Home)
 
