@@ -80,16 +80,13 @@ export function HorizontalScrollCards({
         </div>
 
         {/* Barre de progression */}
-        <div className="px-6 sm:px-16 pb-2 shrink-0 flex items-center gap-4 w-48 sm:w-56">
-          <div className="flex-1 h-px bg-border relative overflow-hidden rounded-full">
+        <div className="px-6 sm:px-16 pb-2 shrink-0 w-48 sm:w-56">
+          <div className="h-px bg-border relative overflow-hidden rounded-full">
             <motion.div
               className="absolute inset-y-0 left-0 bg-primary rounded-full"
               style={{ scaleX: scrollYProgress, originX: 0, height: "1px" }}
             />
           </div>
-          <span className="font-body text-xs text-muted-foreground uppercase tracking-widest shrink-0">
-            {items.length}
-          </span>
         </div>
 
       </div>
