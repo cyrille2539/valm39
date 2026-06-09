@@ -165,13 +165,13 @@ export function ChantierStack({ chantier }: ChantierStackProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[200] flex flex-col bg-charcoal/96 backdrop-blur-md"
+              className="fixed inset-0 z-[200] flex flex-col bg-black/90 backdrop-blur-sm"
               onClick={() => setOpen(false)}
             >
               {/* Bouton fermer — flex-none, hors du scroll, toujours visible */}
               <button
                 onClick={() => setOpen(false)}
-                className="flex-none self-end m-5 text-primary-foreground/60 hover:text-primary-foreground transition-colors"
+                className="flex-none self-end m-5 text-white/60 hover:text-white transition-colors"
                 aria-label="Fermer"
               >
                 <X className="h-8 w-8" />
@@ -183,9 +183,9 @@ export function ChantierStack({ chantier }: ChantierStackProps) {
 
                   {/* En-tête */}
                   <div className="text-center w-full max-w-5xl">
-                    <p className="font-display font-bold text-primary-foreground text-xl">{chantier.nom}</p>
+                    <p className="font-display font-bold text-white text-xl">{chantier.nom}</p>
                     {chantier.description && (
-                      <p className="text-primary-foreground/50 text-sm mt-1 max-w-lg mx-auto leading-relaxed">
+                      <p className="text-white/60 text-sm mt-1 max-w-lg mx-auto leading-relaxed">
                         {chantier.description}
                       </p>
                     )}
@@ -227,7 +227,7 @@ export function ChantierStack({ chantier }: ChantierStackProps) {
                       {/* Compteur */}
                       {total > 1 && (
                         <div className="flex justify-end mt-3 px-1">
-                          <span className="text-primary-foreground/35 text-sm font-display tabular-nums">
+                          <span className="text-white/40 text-sm font-display tabular-nums">
                             {idx + 1} / {total}
                           </span>
                         </div>
@@ -235,7 +235,7 @@ export function ChantierStack({ chantier }: ChantierStackProps) {
 
                       {/* Hint swipe — mobile uniquement */}
                       {total > 1 && (
-                        <p className="sm:hidden text-center text-primary-foreground/25 text-xs mt-2">
+                        <p className="sm:hidden text-center text-white/30 text-xs mt-2">
                           ← glissez pour naviguer →
                         </p>
                       )}
