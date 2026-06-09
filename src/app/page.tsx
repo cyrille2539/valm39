@@ -308,7 +308,7 @@ export default function Home() {
           <div className="mb-16 text-center">
             <motion.p variants={fadeUp} className="text-primary font-display italic text-5xl mb-2">Notre engagement</motion.p>
             <motion.h2 variants={fadeUp} className="font-display text-3xl sm:text-4xl font-bold text-charcoal-soft">
-              Pourquoi choisir ValM39 ?
+              Pourquoi choisir <span className="whitespace-nowrap">ValM39&nbsp;?</span>
             </motion.h2>
           </div>
           <div className="divide-y divide-border">
