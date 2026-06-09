@@ -96,9 +96,34 @@ const AdminMedia = () => {
   // ── Fetch ────────────────────────────────────────────────────────────────
   const fetchItems = async () => {
     const { data } = await supabase.from("media_items").select("*").order("sort_order");
-    setItems(data ?? []);
+    const all = data ?? [];
+
+    // Réparation globale : les anciens records de paire sans le tag home_before_after
+    const orphans = all.filter(p => {
+      const d = p.display_on ?? [];
+      return !d.includes("realisations") &&
+             !d.includes("home_before_after") &&
+             !p.image_url &&
+             (!!p.before_image_url || !!p.after_image_url);
+    });
+    if (orphans.length > 0) {
+      await Promise.all(
+        orphans.map(p =>
+          supabase.from("media_items")
+            .update({ display_on: ["home_before_after"] })
+            .eq("id", p.id)
+        )
+      );
+      const { data: repaired } = await supabase.from("media_items").select("*").order("sort_order");
+      const repairedAll = repaired ?? [];
+      setItems(repairedAll);
+      setLoading(false);
+      return repairedAll;
+    }
+
+    setItems(all);
     setLoading(false);
-    return data ?? [];
+    return all;
   };
 
   useEffect(() => { fetchItems(); }, []);
@@ -190,10 +215,14 @@ const AdminMedia = () => {
 
   // ── Toggles photo ────────────────────────────────────────────────────────
 
-  // Nombre de paires complètes (avant + après) sur l'accueil, tous chantiers confondus
-  const completePairsCount = items.filter(
-    p => isPairRecord(p) && !!p.before_image_url && !!p.after_image_url
-  ).length;
+  // Nombre de paires réellement visibles sur la page d'accueil (aligné sur la requête BeforeAfterSection)
+  const completePairsCount = items.filter(p => {
+    const d = p.display_on ?? [];
+    return d.includes("home_before_after") &&
+           !d.includes("realisations") &&
+           !!p.before_image_url &&
+           !!p.after_image_url;
+  }).length;
 
   // Ce chantier contribue-t-il déjà à une paire complète ?
   const thisChantierComplete = !!homeAvantUrl && !!homeApresUrl;
