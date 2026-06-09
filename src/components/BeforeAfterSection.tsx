@@ -223,7 +223,10 @@ function BeforeAfterGalleryComponent() {
       .from("media_items")
       .select("id, title, description, before_image_url, after_image_url")
       .contains("display_on", ["home_before_after"])
+      .not("before_image_url", "is", null)
+      .not("after_image_url", "is", null)
       .order("sort_order")
+      .limit(3)
       .then(({ data }) => {
         if (data && data.length > 0) setItems(data);
       });

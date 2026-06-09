@@ -108,7 +108,17 @@ const AdminMedia = () => {
     setView('detail');
     setEditingMeta(null);
     setEditingPhoto(null);
-    const pair = c.photos.find(isPairRecord);
+
+    const pairRecords = c.photos.filter(isPairRecord);
+    // Garder la paire la plus complète (avant + après), supprimer les doublons
+    const pair = pairRecords.find(p => p.before_image_url && p.after_image_url)
+              ?? pairRecords[0]
+              ?? null;
+    const extras = pairRecords.filter(p => p.id !== pair?.id);
+    if (extras.length > 0) {
+      Promise.all(extras.map(p => supabase.from("media_items").delete().eq("id", p.id)));
+    }
+
     setHomeAvantUrl(pair?.before_image_url ?? null);
     setHomeApresUrl(pair?.after_image_url  ?? null);
     setHomePairId(pair?.id);
@@ -129,7 +139,7 @@ const AdminMedia = () => {
   // ── Upsert paire accueil ─────────────────────────────────────────────────
   const upsertPair = async (avant: string | null, apres: string | null) => {
     if (!chantier) return;
-    const displayOn = avant && apres ? ["home_before_after"] : [];
+    const displayOn = ["home_before_after"];
 
     if (!avant && !apres) {
       if (homePairId) {
@@ -169,10 +179,26 @@ const AdminMedia = () => {
   };
 
   // ── Toggles photo ────────────────────────────────────────────────────────
+
+  // Nombre de paires complètes (avant + après) sur l'accueil, tous chantiers confondus
+  const completePairsCount = items.filter(
+    p => isPairRecord(p) && !!p.before_image_url && !!p.after_image_url
+  ).length;
+
+  // Ce chantier contribue-t-il déjà à une paire complète ?
+  const thisChantierComplete = !!homeAvantUrl && !!homeApresUrl;
+
+  // Peut-on ajouter / compléter une nouvelle paire ?
+  const canAddPair = thisChantierComplete || completePairsCount < 3;
+
   const toggleAvant = async (photo: MediaItem) => {
     const url = photoUrl(photo);
     if (!url) return;
     const newAvant = homeAvantUrl === url ? null : url;
+    if (newAvant && !canAddPair) {
+      toast.error("Maximum 3 paires Avant/Après sur la page d'accueil");
+      return;
+    }
     setHomeAvantUrl(newAvant);
     await upsertPair(newAvant, homeApresUrl);
   };
@@ -181,6 +207,10 @@ const AdminMedia = () => {
     const url = photoUrl(photo);
     if (!url) return;
     const newApres = homeApresUrl === url ? null : url;
+    if (newApres && !canAddPair) {
+      toast.error("Maximum 3 paires Avant/Après sur la page d'accueil");
+      return;
+    }
     setHomeApresUrl(newApres);
     await upsertPair(homeAvantUrl, newApres);
   };
@@ -457,10 +487,13 @@ const AdminMedia = () => {
       )}
 
       {/* Légende des badges */}
-      <div className="flex flex-wrap gap-2 text-[10px] text-muted-foreground">
+      <div className="flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
         <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-500" /> Avant (page d'accueil)</span>
         <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500" /> Après (page d'accueil)</span>
         <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-full bg-primary" /> Carte catégorie (carousel)</span>
+        <span className={`ml-auto font-semibold ${completePairsCount >= 3 ? "text-destructive" : "text-muted-foreground"}`}>
+          {completePairsCount}/3 paires accueil actives
+        </span>
       </div>
 
       {/* Grille de photos */}
