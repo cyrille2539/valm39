@@ -1,6 +1,22 @@
 import type { Metadata } from "next";
+import { Lora, DM_Sans } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+
+const lora = Lora({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-lora",
+  display: "swap",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-dm-sans",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "ValM39 — Artisan rénovation intérieure dans le Jura (39)",
@@ -123,7 +139,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body>
+      <body className={`${lora.variable} ${dmSans.variable}`}>
         <Providers>{children}</Providers>
       </body>
     </html>
