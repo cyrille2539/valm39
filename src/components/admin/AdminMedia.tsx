@@ -218,37 +218,46 @@ const AdminMedia = () => {
 
   // ── Sauvegarder métadonnées chantier ─────────────────────────────────────
   const saveChantierMeta = async () => {
-    if (!editingMeta?.nom?.trim()) { toast.error("Le nom est obligatoire"); return; }
+    try {
+      if (!editingMeta?.nom?.trim()) { toast.error("Le nom est obligatoire"); return; }
 
-    if (isNewChantier) {
-      setIsNewChantier(false);
-      openDetail({
-        id:          crypto.randomUUID(),
+      if (isNewChantier) {
+        setIsNewChantier(false);
+        openDetail({
+          id:          crypto.randomUUID(),
+          nom:         editingMeta.nom!,
+          description: editingMeta.description ?? '',
+          categorie:   editingMeta.categorie   ?? 'autres',
+          display_on:  editingMeta.display_on  ?? [],
+          location:    editingMeta.location    ?? '',
+          photos:      [],
+        });
+        setEditingMeta(null);
+        toast.success("Chantier créé — ajoutez maintenant les photos");
+        return;
+      }
+
+      if (!chantier) { toast.error("Aucun chantier sélectionné"); return; }
+
+      const chantierId    = chantier.id;
+      const regularPhotos = chantier.photos.filter(p => !isPairRecord(p));
+      const pairRecord    = chantier.photos.find(isPairRecord);
+      const newMeta = {
         nom:         editingMeta.nom!,
         description: editingMeta.description ?? '',
-        categorie:   editingMeta.categorie   ?? 'autres',
-        display_on:  editingMeta.display_on  ?? [],
+        categorie:   editingMeta.categorie   ?? chantier.categorie,
+        display_on:  editingMeta.display_on  ?? chantier.display_on,
         location:    editingMeta.location    ?? '',
-        photos:      [],
-      });
-      setEditingMeta(null);
-      toast.success("Chantier créé — ajoutez maintenant les photos");
-      return;
-    }
+      };
 
-    // Capturer avant toute opération async (le state peut évoluer)
-    const chantierId    = chantier!.id;
-    const regularPhotos = chantier!.photos.filter(p => !isPairRecord(p));
-    const pairRecord    = chantier!.photos.find(isPairRecord);
-    const newMeta = {
-      nom:         editingMeta.nom!,
-      description: editingMeta.description ?? '',
-      categorie:   editingMeta.categorie   ?? chantier!.categorie,
-      display_on:  editingMeta.display_on  ?? chantier!.display_on,
-      location:    editingMeta.location    ?? '',
-    };
+      if (regularPhotos.length === 0 && !pairRecord) {
+        // Chantier sans photos : mise à jour de l'état local uniquement
+        setChantier(prev => prev ? { ...prev, ...newMeta } : prev);
+        setEditingMeta(null);
+        toast.success("Chantier mis à jour");
+        return;
+      }
 
-    try {
       for (const p of regularPhotos) {
         const { error } = await supabase.from("media_items").update({
           chantier_nom:         newMeta.nom,
@@ -259,6 +268,7 @@ const AdminMedia = () => {
         }).eq("id", p.id);
         if (error) throw error;
       }
+
       if (pairRecord) {
         const { error } = await supabase.from("media_items").update({
           chantier_nom:         newMeta.nom,
@@ -268,23 +278,18 @@ const AdminMedia = () => {
         }).eq("id", pairRecord.id);
         if (error) throw error;
       }
-    } catch (err: any) {
-      toast.error("Erreur lors de la sauvegarde : " + (err?.message ?? String(err)));
-      return;
-    }
 
-    toast.success("Chantier mis à jour");
-    setEditingMeta(null);
+      toast.success("Chantier mis à jour");
+      setEditingMeta(null);
+      setChantier(prev => prev ? { ...prev, ...newMeta } : prev);
 
-    // Mettre à jour l'état local immédiatement
-    setChantier(prev => prev ? { ...prev, ...newMeta } : prev);
-
-    // Rafraîchir depuis la DB pour mettre à jour la liste
-    if (regularPhotos.length > 0 || pairRecord) {
       const data = await fetchItems();
       const groups = groupByChantier(data);
       const refreshed = groups.find(c => c.id === chantierId);
       if (refreshed) openDetail(refreshed);
+
+    } catch (err: any) {
+      toast.error("Erreur lors de la sauvegarde : " + (err?.message ?? String(err)));
     }
   };
 
@@ -460,14 +465,58 @@ const AdminMedia = () => {
 
       {/* Grille de photos */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Bouton ajouter */}
-        <button
-          onClick={() => setEditingPhoto({ title: chantier!.nom, sort_order: regularPhotos.length + 1 })}
-          className="aspect-[4/3] border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors"
-        >
-          <Plus className="h-8 w-8" />
-          <span className="text-sm font-medium">Ajouter une photo</span>
-        </button>
+        {/* Formulaire ajout inline / bouton + */}
+        {editingPhoto && !editingPhoto.id ? (
+          <div className="border border-border rounded-xl p-4 bg-card space-y-3">
+            <h3 className="font-display font-bold text-sm">Ajouter une photo</h3>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Titre</Label>
+              <Input
+                value={editingPhoto.title ?? ""}
+                onChange={e => setEditingPhoto({ ...editingPhoto, title: e.target.value })}
+                placeholder="Ex : Vue d'ensemble après travaux"
+                className="h-8 text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Photo à ajouter</Label>
+              {editingPhoto.image_url && (
+                <div className="relative">
+                  <img src={editingPhoto.image_url} alt="" className="w-full aspect-[4/3] object-cover rounded-lg" />
+                  <button
+                    onClick={() => setEditingPhoto({ ...editingPhoto, image_url: null })}
+                    className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5 hover:bg-black/80"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
+              <label className={`flex items-center gap-2 cursor-pointer px-3 py-2 rounded-md border border-dashed border-border hover:border-primary/50 transition-colors ${uploading === "image_url" ? "opacity-50" : ""}`}>
+                <Upload className="h-4 w-4 text-muted-foreground shrink-0" />
+                <span className="text-muted-foreground text-sm">{uploading === "image_url" ? "Upload…" : "Choisir"}</span>
+                <input type="file" accept="image/*" className="sr-only"
+                  disabled={uploading !== null}
+                  onChange={e => e.target.files?.[0] && upload(e.target.files[0], "image_url")} />
+              </label>
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={savePhoto} disabled={uploading !== null}>
+                <Save className="h-3 w-3 mr-1" /> Sauvegarder
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setEditingPhoto(null)}>
+                <X className="h-3 w-3 mr-1" /> Annuler
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => setEditingPhoto({ title: chantier!.nom, sort_order: regularPhotos.length + 1 })}
+            className="aspect-[4/3] border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors"
+          >
+            <Plus className="h-8 w-8" />
+            <span className="text-sm font-medium">Ajouter une photo</span>
+          </button>
+        )}
 
         {/* Photos existantes */}
         {regularPhotos.map(photo => {
@@ -571,12 +620,10 @@ const AdminMedia = () => {
         </div>
       )}
 
-      {/* Formulaire photo */}
-      {editingPhoto && (
+      {/* Formulaire édition photo existante */}
+      {editingPhoto?.id && (
         <div className="border border-border rounded-xl p-6 bg-card space-y-4">
-          <h3 className="font-display font-bold text-base">
-            {editingPhoto.id ? "Modifier la photo" : "Ajouter une photo"}
-          </h3>
+          <h3 className="font-display font-bold text-base">Modifier la photo</h3>
           <div className="space-y-2">
             <Label>Titre</Label>
             <Input
@@ -585,33 +632,26 @@ const AdminMedia = () => {
               placeholder="Ex : Vue d'ensemble après travaux"
             />
           </div>
-          <div className="grid sm:grid-cols-3 gap-4">
-            {(["image_url", "before_image_url", "after_image_url"] as const).map(field => {
-              const labels = { image_url: "Photo principale", before_image_url: "Photo Avant", after_image_url: "Photo Après" };
-              return (
-                <div key={field} className="space-y-2">
-                  <Label>{labels[field]}</Label>
-                  {editingPhoto[field] && (
-                    <div className="relative">
-                      <img src={editingPhoto[field]!} alt="" className="w-full aspect-[4/3] object-cover rounded-lg" />
-                      <button
-                        onClick={() => setEditingPhoto({ ...editingPhoto, [field]: null })}
-                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5 hover:bg-black/80"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  )}
-                  <label className={`flex items-center gap-2 text-sm cursor-pointer px-3 py-2 rounded-md border border-dashed border-border hover:border-primary/50 transition-colors ${uploading === field ? "opacity-50" : ""}`}>
-                    <Upload className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <span className="text-muted-foreground">{uploading === field ? "Upload…" : "Choisir"}</span>
-                    <input type="file" accept="image/*" className="sr-only"
-                      disabled={uploading !== null}
-                      onChange={e => e.target.files?.[0] && upload(e.target.files[0], field)} />
-                  </label>
-                </div>
-              );
-            })}
+          <div className="space-y-2">
+            <Label>Photo à ajouter</Label>
+            {editingPhoto.image_url && (
+              <div className="relative">
+                <img src={editingPhoto.image_url} alt="" className="w-full max-w-xs aspect-[4/3] object-cover rounded-lg" />
+                <button
+                  onClick={() => setEditingPhoto({ ...editingPhoto, image_url: null })}
+                  className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5 hover:bg-black/80"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            )}
+            <label className={`flex items-center gap-2 text-sm cursor-pointer px-3 py-2 rounded-md border border-dashed border-border hover:border-primary/50 transition-colors w-fit ${uploading === "image_url" ? "opacity-50" : ""}`}>
+              <Upload className="h-4 w-4 text-muted-foreground shrink-0" />
+              <span className="text-muted-foreground">{uploading === "image_url" ? "Upload…" : "Choisir"}</span>
+              <input type="file" accept="image/*" className="sr-only"
+                disabled={uploading !== null}
+                onChange={e => e.target.files?.[0] && upload(e.target.files[0], "image_url")} />
+            </label>
           </div>
           <div className="flex gap-2 pt-1">
             <Button onClick={savePhoto} disabled={uploading !== null}>
