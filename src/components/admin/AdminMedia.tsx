@@ -6,9 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Plus, Pencil, Trash2, Save, X, Upload, ArrowLeft, Images, Home } from "lucide-react";
+import { Plus, Pencil, Trash2, Save, X, Upload, ArrowLeft, Images, Home, GripVertical } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
+import {
+  DndContext, closestCenter, PointerSensor, KeyboardSensor,
+  useSensor, useSensors, type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext, sortableKeyboardCoordinates, rectSortingStrategy,
+  arrayMove, useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 type MediaItem = Tables<"media_items">;
 
@@ -211,6 +220,36 @@ const AdminMedia = () => {
     }
     // Rafraîchir le compteur de la liste
     fetchItems();
+  };
+
+  // ── Drag & drop réordonnancement ─────────────────────────────────────────
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !chantier) return;
+    const reg = chantier.photos.filter(p => !isPairRecord(p));
+    const oldIdx = reg.findIndex(p => p.id === active.id);
+    const newIdx = reg.findIndex(p => p.id === over.id);
+    const newOrder = arrayMove(reg, oldIdx, newIdx);
+    // Mise à jour locale immédiate
+    setChantier(prev => {
+      if (!prev) return prev;
+      return { ...prev, photos: [...prev.photos.filter(isPairRecord), ...newOrder] };
+    });
+    // Persistance en base
+    try {
+      await Promise.all(
+        newOrder.map((p, idx) =>
+          supabase.from("media_items").update({ sort_order: idx + 1 }).eq("id", p.id)
+        )
+      );
+    } catch {
+      toast.error("Erreur lors de la sauvegarde de l'ordre");
+    }
   };
 
   // ── Toggles photo ────────────────────────────────────────────────────────
@@ -590,79 +629,25 @@ const AdminMedia = () => {
           </button>
         )}
 
-        {/* Photos existantes */}
-        {regularPhotos.map(photo => {
-          const url = photoUrl(photo);
-          const isAvant   = !!url && homeAvantUrl === url;
-          const isApres   = !!url && homeApresUrl === url;
-          const isCatCard = (photo.display_on ?? []).includes("cat_card");
-          return (
-            <div key={photo.id} className="border border-border rounded-xl bg-card overflow-hidden">
-              <div className="aspect-[4/3] bg-muted relative">
-                {url
-                  ? <img src={url} alt={photo.title} className="w-full h-full object-cover" />
-                  : <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">Pas d'image</div>
-                }
-                {/* Indicateurs actifs */}
-                <div className="absolute top-1.5 left-1.5 flex gap-1">
-                  {isAvant   && <span className="bg-amber-500   text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold leading-none">Av</span>}
-                  {isApres   && <span className="bg-emerald-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold leading-none">Ap</span>}
-                  {isCatCard && <span className="bg-primary text-primary-foreground text-[9px] px-1.5 py-0.5 rounded-full font-bold leading-none">Carte</span>}
-                </div>
-              </div>
-
-              {/* Toggles de rôle */}
-              <div className="px-2 pt-1.5 pb-1 flex flex-wrap gap-1">
-                <button
-                  onClick={() => toggleAvant(photo)}
-                  title="Désigner comme photo Avant pour l'accueil"
-                  className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border transition-colors ${
-                    isAvant
-                      ? 'bg-amber-500 border-amber-500 text-white'
-                      : 'border-border text-muted-foreground hover:border-amber-400 hover:text-amber-600'
-                  }`}
-                >
-                  Avant
-                </button>
-                <button
-                  onClick={() => toggleApres(photo)}
-                  title="Désigner comme photo Après pour l'accueil"
-                  className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border transition-colors ${
-                    isApres
-                      ? 'bg-emerald-500 border-emerald-500 text-white'
-                      : 'border-border text-muted-foreground hover:border-emerald-400 hover:text-emerald-600'
-                  }`}
-                >
-                  Après
-                </button>
-                <button
-                  onClick={() => toggleCatCard(photo)}
-                  title="Utiliser comme image de la carte catégorie dans le carousel"
-                  className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border transition-colors ${
-                    isCatCard
-                      ? 'bg-primary border-primary text-primary-foreground'
-                      : 'border-border text-muted-foreground hover:border-primary/50 hover:text-primary'
-                  }`}
-                >
-                  Carte
-                </button>
-              </div>
-
-              {/* Actions */}
-              <div className="px-2 pb-2 flex items-center justify-between gap-2">
-                <p className="text-xs text-muted-foreground truncate flex-1">{photo.title}</p>
-                <div className="flex gap-1 shrink-0">
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingPhoto(photo)}>
-                    <Pencil className="h-3 w-3" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deletePhoto(photo.id)}>
-                    <Trash2 className="h-3 w-3 text-destructive" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        {/* Photos existantes — drag & drop */}
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={regularPhotos.map(p => p.id)} strategy={rectSortingStrategy}>
+            {regularPhotos.map(photo => (
+              <SortablePhotoCard
+                key={photo.id}
+                photo={photo}
+                isAvant={!!photoUrl(photo) && homeAvantUrl === photoUrl(photo)}
+                isApres={!!photoUrl(photo) && homeApresUrl === photoUrl(photo)}
+                isCatCard={(photo.display_on ?? []).includes("cat_card")}
+                onToggleAvant={() => toggleAvant(photo)}
+                onToggleApres={() => toggleApres(photo)}
+                onToggleCatCard={() => toggleCatCard(photo)}
+                onEdit={() => setEditingPhoto(photo)}
+                onDelete={() => deletePhoto(photo.id)}
+              />
+            ))}
+          </SortableContext>
+        </DndContext>
       </div>
 
       {/* Info paire accueil */}
@@ -738,6 +723,75 @@ const AdminMedia = () => {
     </div>
   );
 };
+
+// ── Carte photo sortable ──────────────────────────────────────────────────────
+function SortablePhotoCard({
+  photo, isAvant, isApres, isCatCard,
+  onToggleAvant, onToggleApres, onToggleCatCard, onEdit, onDelete,
+}: {
+  photo: MediaItem;
+  isAvant: boolean; isApres: boolean; isCatCard: boolean;
+  onToggleAvant: () => void; onToggleApres: () => void; onToggleCatCard: () => void;
+  onEdit: () => void; onDelete: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: photo.id });
+  const url = photoUrl(photo);
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1 }}
+      className="border border-border rounded-xl bg-card overflow-hidden"
+    >
+      {/* Poignée de glissement */}
+      <div
+        {...attributes}
+        {...listeners}
+        className="flex items-center justify-center py-1 bg-muted/40 cursor-grab active:cursor-grabbing touch-none select-none"
+      >
+        <GripVertical className="h-3.5 w-3.5 text-muted-foreground/50" />
+      </div>
+
+      <div className="aspect-[4/3] bg-muted relative">
+        {url
+          ? <img src={url} alt={photo.title} className="w-full h-full object-cover" />
+          : <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">Pas d'image</div>
+        }
+        <div className="absolute top-1.5 left-1.5 flex gap-1">
+          {isAvant   && <span className="bg-amber-500   text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold leading-none">Av</span>}
+          {isApres   && <span className="bg-emerald-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold leading-none">Ap</span>}
+          {isCatCard && <span className="bg-primary text-primary-foreground text-[9px] px-1.5 py-0.5 rounded-full font-bold leading-none">Carte</span>}
+        </div>
+      </div>
+
+      <div className="px-2 pt-1.5 pb-1 flex flex-wrap gap-1">
+        <button onClick={onToggleAvant} title="Photo Avant pour l'accueil"
+          className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border transition-colors ${isAvant ? 'bg-amber-500 border-amber-500 text-white' : 'border-border text-muted-foreground hover:border-amber-400 hover:text-amber-600'}`}>
+          Avant
+        </button>
+        <button onClick={onToggleApres} title="Photo Après pour l'accueil"
+          className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border transition-colors ${isApres ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-border text-muted-foreground hover:border-emerald-400 hover:text-emerald-600'}`}>
+          Après
+        </button>
+        <button onClick={onToggleCatCard} title="Image carte catégorie"
+          className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border transition-colors ${isCatCard ? 'bg-primary border-primary text-primary-foreground' : 'border-border text-muted-foreground hover:border-primary/50 hover:text-primary'}`}>
+          Carte
+        </button>
+      </div>
+
+      <div className="px-2 pb-2 flex items-center justify-between gap-2">
+        <p className="text-xs text-muted-foreground truncate flex-1">{photo.title}</p>
+        <div className="flex gap-1 shrink-0">
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onEdit}>
+            <Pencil className="h-3 w-3" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onDelete}>
+            <Trash2 className="h-3 w-3 text-destructive" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ── Formulaire métadonnées chantier ──────────────────────────────────────────
 function ChantierMetaForm({ data, onChange, onSave, onCancel, toggleDisplay, isNew = false }: {
