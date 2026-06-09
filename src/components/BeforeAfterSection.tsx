@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import { supabase } from "@/integrations/supabase/client";
@@ -150,29 +151,33 @@ function BeforeAfterCard({ item, index, isExpanded, isAnyHovered, onMouseEnter, 
       {/* Div interne : overflow-hidden pour l'animation clip-path */}
       <div className="absolute inset-0 rounded-2xl overflow-hidden">
         {/* Before layer */}
-        <div className="absolute inset-0 bg-muted flex items-center justify-center">
+        <div className="absolute inset-0 bg-muted">
           {item.before_image_url ? (
-            <img src={item.before_image_url} alt={`${item.title} — état avant travaux`} className="w-full h-full object-cover" />
+            <Image src={item.before_image_url} alt={`${item.title} — état avant travaux`} fill className="object-cover" sizes="(max-width: 1023px) 100vw, 33vw" />
           ) : (
-            <div className="text-center">
-              <span className="font-display text-4xl font-bold text-charcoal-soft/20">Avant</span>
-              <p className="text-sm text-muted-foreground mt-2">Photo à venir</p>
+            <div className="flex items-center justify-center w-full h-full">
+              <div className="text-center">
+                <span className="font-display text-4xl font-bold text-charcoal-soft/20">Avant</span>
+                <p className="text-sm text-muted-foreground mt-2">Photo à venir</p>
+              </div>
             </div>
           )}
         </div>
         {/* After layer */}
         <motion.div
-          className="absolute inset-0 bg-primary/20 flex items-center justify-center"
+          className="absolute inset-0 bg-primary/20"
           initial={false}
           animate={clipAnimate}
           transition={{ duration: dur, ease: "easeInOut" }}
         >
           {item.after_image_url ? (
-            <img src={item.after_image_url} alt={`${item.title} — résultat après travaux ValM39`} className="w-full h-full object-cover" />
+            <Image src={item.after_image_url} alt={`${item.title} — résultat après travaux ValM39`} fill className="object-cover" sizes="(max-width: 1023px) 100vw, 33vw" />
           ) : (
-            <div className="text-center relative z-10">
-              <span className="font-display text-4xl font-bold text-primary/30">Après</span>
-              <p className="text-sm text-muted-foreground mt-2">Photo à venir</p>
+            <div className="flex items-center justify-center w-full h-full relative z-10">
+              <div className="text-center">
+                <span className="font-display text-4xl font-bold text-primary/30">Après</span>
+                <p className="text-sm text-muted-foreground mt-2">Photo à venir</p>
+              </div>
             </div>
           )}
           <motion.div
@@ -235,13 +240,14 @@ function BeforeAfterGalleryComponent() {
   return (
     <section id="avant-apres" className="relative py-20 sm:py-28 bg-card">
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <motion.img
-          src={bgSection3}
-          className="w-full h-full object-cover grayscale"
+        <motion.div
+          className="absolute inset-0"
           aria-hidden
           animate={{ opacity: [0.08, 0.25, 0.08] }}
           transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        />
+        >
+          <Image src={bgSection3} alt="" fill className="object-cover grayscale" sizes="100vw" quality={40} />
+        </motion.div>
         <motion.div
           className="absolute inset-0"
           style={{ background: "radial-gradient(ellipse at 60% 50%, rgba(212,192,165,0.26) 0%, transparent 70%)" }}

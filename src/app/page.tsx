@@ -8,6 +8,7 @@ import { ContactForm } from "@/components/ContactForm";
 import { MobileMenu } from "@/components/MobileMenu";
 import { ShinyButton } from "@/components/ui/shiny-button";
 import Link from "next/link";
+import Image from "next/image";
 import AnimatedLogo from "@/components/AnimatedLogo";
 import { RulerNav } from "@/components/RulerNav";
 import SocialProofBar from "@/components/SocialProofBar";
@@ -39,13 +40,14 @@ const stagger = {
 
 const SectionBg = ({ src, delay = 0 }: { src: string; delay?: number }) => (
   <div className="absolute inset-0 pointer-events-none overflow-hidden">
-    <motion.img
-      src={src}
-      className="w-full h-full object-cover grayscale"
+    <motion.div
+      className="absolute inset-0"
       aria-hidden
       animate={{ opacity: [0.08, 0.25, 0.08] }}
       transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay }}
-    />
+    >
+      <Image src={src} alt="" fill className="object-cover grayscale" sizes="100vw" quality={40} />
+    </motion.div>
     <motion.div
       className="absolute inset-0"
       style={{ background: "radial-gradient(ellipse at 60% 50%, rgba(212,192,165,0.26) 0%, transparent 70%)" }}
@@ -137,10 +139,14 @@ export default function Home() {
           animate={{ scale: 1 }}
           transition={{ duration: 11, ease: [0.25, 0.46, 0.45, 0.94] }}
         >
-          <img
+          <Image
             src={heroHome}
             alt="Rénovation intérieure par ValM39 – cuisine, parquet et peinture"
-            className="w-full h-full object-cover object-center"
+            fill
+            priority
+            className="object-cover object-center"
+            sizes="100vw"
+            quality={85}
           />
         </motion.div>
         <div className="absolute inset-0 bg-gradient-to-b sm:bg-gradient-to-r from-charcoal/85 via-charcoal/60 to-charcoal/30 sm:to-transparent" />
