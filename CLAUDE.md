@@ -61,11 +61,15 @@ Content-Type: application/json
 Body: {"query": "<SQL>"}
 ```
 
+**Client Supabase** (`src/integrations/supabase/client.ts`) — singleton via `globalThis._supabaseSingleton` pour éviter la race condition sur le verrou auth localStorage causée par Turbopack (hot-reload) + React StrictMode qui créent plusieurs instances concurrentes.
+
 **Table `media_items`** :
-- `display_on text[]` — `"home_before_after"` ou `"realisations"`. Requête : `.contains("display_on", ["valeur"])`
+- `display_on text[]` — valeurs : `"realisations"`, `"home_before_after"`, `"cat_card"`. Requête : `.contains("display_on", ["valeur"])`
 - `category` — `cuisine | parquet | cloisons | peinture | électricité | autres`
-- `image_url` — priorité ; fallback : `image_url ?? after_image_url ?? before_image_url`
-- `chantier_id` — FK vers `chantiers.id`
+- `image_url` — priorité ; helper `photoUrl(p)` : `p.image_url ?? p.after_image_url ?? p.before_image_url ?? null`
+- `chantier_id` — regroupe les photos d'un même chantier ; clé dans `groupByChantier` : `item.chantier_id ?? item.id`
+
+**Pair records (accueil Avant/Après)** — entrées dédiées dans `media_items` sans `image_url`, avec `before_image_url` + `after_image_url` + `display_on: ["home_before_after"]`. Détectées par `isPairRecord(p)` : `display_on` inclut `"home_before_after"` ET NOT `"realisations"` ; ou (ancien style) `!image_url && (before || after)`. Maximum 3 paires complètes autorisées. `AdminMedia` crée/met à jour un seul record pair par chantier via `upsertPair()`. `fetchItems()` répare automatiquement les orphelins (anciens records sans le tag). `openDetail()` dédoublonne les paires en conservant la plus complète.
 
 **Table `chantiers`** : `id, nom, description, categorie, sort_order`. Vue utilitaire `media_items_with_chantier`.
 
@@ -103,6 +107,8 @@ La courbe d'animation standard est `cubic-bezier(0.22, 1, 0.36, 1)` (easing spri
 **`BeforeAfterSection`** — exporté par défaut. `BeforeAfterGallery.tsx` est un stub vide — toujours importer depuis `BeforeAfterSection.tsx`.
 - Animation `clipPath` : split → covering (4s) → shimmer (1.5s × 2). Shimmer en `rgba(255,255,255,...)`, pas en `hsl(var(--primary))`.
 - Le dégradé sombre et le bevel verre sont **en dehors** du `div.overflow-hidden`.
+- Charge les paires depuis Supabase : `.contains("display_on", ["home_before_after"]).not("before_image_url", "is", null).not("after_image_url", "is", null).limit(3)` — jamais de paire incomplète, jamais plus de 3.
+- `maxWidth: "calc(80vh / 1.618)"` sur chaque carte pour plafonner la hauteur à 80 vh quelle que soit la largeur du flex container.
 
 **`RulerNav`** — navigation desktop. Ordre : Accueil, Réalisations, Locations, Investisseurs, Agences.
 
@@ -118,9 +124,20 @@ La courbe d'animation standard est `cubic-bezier(0.22, 1, 0.36, 1)` (easing spri
 - Footer `lg:fixed lg:bottom-0` — fixe uniquement sur desktop ; en flux normal sur mobile/tablette.
 - `MobileMenu` (bottom nav) rendu après le footer, visible uniquement `lg:hidden`.
 
+### AdminMedia (`src/components/admin/AdminMedia.tsx`)
+
+Gestion complète des chantiers et photos. Vue liste → vue détail chantier.
+
+- **Par photo** : boutons-pilules [Avant] / [Après] / [Carte] pour affecter un rôle, sauvegarde immédiate.
+- **Drag & drop** (`@dnd-kit/core` + `@dnd-kit/sortable`) : poignée `GripVertical` en haut de chaque carte, `handleDragEnd` met à jour `sort_order` en base.
+- **`saveChantierMeta`** : `try/catch` global, boucle `for...of` séquentielle avec `if (error) throw error` — ne pas revenir à `Promise.all` qui avale les erreurs silencieusement.
+- **`completePairsCount`** : compte uniquement les records avec `display_on` incluant `"home_before_after"` ET `before_image_url` ET `after_image_url` non null — aligné sur ce que `BeforeAfterSection` affiche réellement.
+
 ### Page Réalisations
 
 `realisations/page.tsx` groupe les `media_items` par `chantier_id`. Fallback : `MOCK_CHANTIERS` (4 chantiers définis dans le fichier). `CATEGORY_CARDS` définit les 7 filtres du carousel. Filtrage : `activeFilter === "tout"` montre tout, sinon `chantier.categorie === activeFilter`.
+
+Images des cartes catégorie : état `carouselCards` initialisé depuis `CATEGORY_CARDS`, surchargé au montage par les `media_items` avec `display_on` contenant `"cat_card"` (un par catégorie).
 
 Points d'architecture spécifiques :
 - Le wrapper `CategoryCarousel` a `style={{ overflowX: "clip" }}` — coupe le débordement horizontal du carousel sans créer de scroll container (contrairement à `overflow: hidden`).
