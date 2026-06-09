@@ -217,19 +217,14 @@ export function ChantierStack({ chantier }: ChantierStackProps) {
                   />
                 </AnimatePresence>
 
-                {/* Compteur + légende */}
-                <div className="relative flex items-center justify-center mt-3 px-1">
-                  {chantier.photos[idx].title && (
-                    <p className="text-primary-foreground/50 text-sm font-display text-center">
-                      {chantier.photos[idx].title}
-                    </p>
-                  )}
-                  {total > 1 && (
-                    <span className="absolute right-1 text-primary-foreground/35 text-sm font-display tabular-nums shrink-0">
+                {/* Compteur */}
+                {total > 1 && (
+                  <div className="flex justify-end mt-3 px-1">
+                    <span className="text-primary-foreground/35 text-sm font-display tabular-nums">
                       {idx + 1} / {total}
                     </span>
-                  )}
-                </div>
+                  </div>
+                )}
 
                 {/* Hint swipe — mobile uniquement */}
                 {total > 1 && (
