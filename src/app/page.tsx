@@ -202,7 +202,7 @@ export default function Home() {
             <motion.p
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.55, duration: 0.6, ease: "easeOut" }}
+              transition={{ delay: 0.9, duration: 0.6, ease: "easeOut" }}
               className="text-lg sm:text-xl text-primary-foreground/80 mb-10 leading-relaxed"
             >
               Cuisine, parquet, cloisons, peinture<br className="hidden sm:block" />Des travaux réalisés avec soin pour un intérieur qui vous ressemble.
@@ -210,7 +210,7 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, scale: 0.88 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 1.75, type: "spring", stiffness: 200, damping: 20 }}
+              transition={{ delay: 1.1, type: "spring", stiffness: 200, damping: 20 }}
               className="flex justify-center"
             >
               <ShinyButton href="#services" size="lg" variant="light">
