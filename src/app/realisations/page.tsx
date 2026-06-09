@@ -92,10 +92,11 @@ const MOCK_CHANTIERS: Chantier[] = [
 ];
 
 export default function Realisations() {
-  const [activeFilter, setActiveFilter] = useState<Category>("tout");
-  const [chantiers, setChantiers]       = useState<Chantier[]>(MOCK_CHANTIERS);
-  const [loading, setLoading]           = useState(true);
-  const [gridHovered, setGridHovered]   = useState(false);
+  const [activeFilter,  setActiveFilter]  = useState<Category>("tout");
+  const [chantiers,     setChantiers]     = useState<Chantier[]>(MOCK_CHANTIERS);
+  const [loading,       setLoading]       = useState(true);
+  const [gridHovered,   setGridHovered]   = useState(false);
+  const [carouselCards, setCarouselCards] = useState<CarouselCard[]>(CATEGORY_CARDS);
 
   usePageMeta({
     title: "Réalisations rénovation intérieure Jura (39) | ValM39",
@@ -103,6 +104,25 @@ export default function Realisations() {
     canonical: "https://www.valm39.fr/realisations",
     ogUrl: "https://www.valm39.fr/realisations",
   });
+
+  // Images dynamiques pour les cartes catégories du carousel
+  useEffect(() => {
+    supabase
+      .from("media_items")
+      .select("category, image_url, before_image_url, after_image_url" as any)
+      .contains("display_on", ["cat_card"])
+      .then(({ data }) => {
+        if (!data?.length) return;
+        const overrides: Record<string, string> = {};
+        for (const item of data as any[]) {
+          const url = item.image_url ?? item.after_image_url ?? item.before_image_url;
+          if (url && item.category) overrides[item.category] = url;
+        }
+        setCarouselCards(prev =>
+          prev.map(card => overrides[card.value] ? { ...card, img: overrides[card.value] } : card)
+        );
+      });
+  }, []);
 
   useEffect(() => {
     supabase
@@ -181,7 +201,7 @@ export default function Realisations() {
           </div>
 
           <motion.div variants={fadeUp} className="mb-14" style={{ overflowX: "clip" }}>
-            <CategoryCarousel cards={CATEGORY_CARDS} onSelect={setActiveFilter} externalPaused={gridHovered} />
+            <CategoryCarousel cards={carouselCards} onSelect={setActiveFilter} externalPaused={gridHovered} />
           </motion.div>
 
           <div onMouseEnter={() => setGridHovered(true)} onMouseLeave={() => setGridHovered(false)}>

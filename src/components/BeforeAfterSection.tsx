@@ -141,6 +141,7 @@ function BeforeAfterCard({ item, index, isExpanded, isAnyHovered, onMouseEnter, 
           : { aspectRatio: "1 / 1.618", alignSelf: "flex-start" }
         ),
         flex: isExpanded ? "2 1 0%" : "1 1 0%",
+        maxWidth: "calc(80vh / 1.618)",
         transition: "flex 0.6s cubic-bezier(0.22, 1, 0.36, 1)",
         minWidth: 0,
         boxShadow: shadow3d,
