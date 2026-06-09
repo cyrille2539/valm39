@@ -2,6 +2,7 @@
 
 import { useRef, useLayoutEffect, useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
@@ -106,15 +107,16 @@ const ServiceCard = ({
   const inner = (
     <>
       {image ? (
-        <img
+        <Image
           src={image}
           alt={title}
-          className="absolute inset-0 w-full h-full object-cover"
+          fill
+          className="object-cover"
+          sizes="(max-width: 1023px) 50vw, 20vw"
           style={{
             transform: isExpanded ? "scale(1.05)" : "scale(1)",
             transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)",
           }}
-          loading="lazy"
         />
       ) : (
         <div
