@@ -160,32 +160,36 @@ export function ChantierStack({ chantier }: ChantierStackProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-charcoal/96 backdrop-blur-md p-4 sm:p-6 overflow-y-auto"
+            className="fixed inset-0 z-[100] flex flex-col bg-charcoal/96 backdrop-blur-md"
             onClick={() => setOpen(false)}
           >
-            {/* Fermer */}
+            {/* Fermer — hors de la zone scrollable, reste visible en permanence */}
             <button
               onClick={() => setOpen(false)}
-              className="absolute top-5 right-5 text-primary-foreground/60 hover:text-primary-foreground transition-colors z-10"
+              className="flex-none self-end m-5 text-primary-foreground/60 hover:text-primary-foreground transition-colors"
               aria-label="Fermer"
             >
               <X className="h-8 w-8" />
             </button>
 
-            {/* En-tête */}
-            <div className="text-center mb-4 px-10">
-              <p className="font-display font-bold text-primary-foreground text-xl">{chantier.nom}</p>
-              {chantier.description && (
-                <p className="text-primary-foreground/50 text-sm mt-1 max-w-lg mx-auto leading-relaxed">
-                  {chantier.description}
-                </p>
-              )}
-            </div>
+            {/* Contenu scrollable */}
+            <div
+              className="flex-1 overflow-y-auto flex flex-col items-center justify-center px-4 sm:px-6 pb-6 gap-4"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* En-tête */}
+              <div className="text-center px-4 w-full max-w-5xl">
+                <p className="font-display font-bold text-primary-foreground text-xl">{chantier.nom}</p>
+                {chantier.description && (
+                  <p className="text-primary-foreground/50 text-sm mt-1 max-w-lg mx-auto leading-relaxed">
+                    {chantier.description}
+                  </p>
+                )}
+              </div>
 
             {/* Zone image + chevrons (desktop) — swipe (mobile) */}
             <div
               className="flex items-center gap-3 sm:gap-5 w-full max-w-5xl"
-              onClick={e => e.stopPropagation()}
             >
               {/* Chevron gauche — desktop uniquement */}
               <button
@@ -243,6 +247,7 @@ export function ChantierStack({ chantier }: ChantierStackProps) {
                 <ChevronRight className="h-6 w-6" style={{ color: 'hsl(85, 45%, 65%)', stroke: 'hsl(85, 45%, 65%)' }} />
               </button>
             </div>
+            </div>{/* fin contenu scrollable */}
           </motion.div>
         )}
       </AnimatePresence>
