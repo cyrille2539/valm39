@@ -42,7 +42,10 @@ interface ChantierGroup {
 // Entrée dédiée accueil avant/après (pas dans la grille photos régulières)
 const isPairRecord = (p: MediaItem) => {
   const d = p.display_on ?? [];
-  return d.includes("home_before_after") && !d.includes("realisations");
+  if (d.includes("realisations")) return false;
+  if (d.includes("home_before_after")) return true;
+  // Anciens records créés partiellement (display_on vide, pas d'image_url, a before/after)
+  return !p.image_url && (!!p.before_image_url || !!p.after_image_url);
 };
 
 function groupByChantier(items: MediaItem[]): ChantierGroup[] {
@@ -117,6 +120,13 @@ const AdminMedia = () => {
     const extras = pairRecords.filter(p => p.id !== pair?.id);
     if (extras.length > 0) {
       Promise.all(extras.map(p => supabase.from("media_items").delete().eq("id", p.id)));
+    }
+    // Réparer les anciens records qui n'ont pas le tag home_before_after
+    if (pair && !(pair.display_on ?? []).includes("home_before_after")) {
+      supabase.from("media_items")
+        .update({ display_on: ["home_before_after"] })
+        .eq("id", pair.id)
+        .then(() => fetchItems());
     }
 
     setHomeAvantUrl(pair?.before_image_url ?? null);
