@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Category } from "@/components/CategoryCarousel";
@@ -69,6 +70,9 @@ export function ChantierStack({ chantier }: ChantierStackProps) {
   const [open, setOpen]       = useState(false);
   const [idx, setIdx]         = useState(0);
   const touchStartX           = useRef<number | null>(null);
+  const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
+
+  useEffect(() => { setPortalRoot(document.body); }, []);
 
   const isMobile = useIsMobile();
   const cards  = chantier.photos.slice(0, 3);
@@ -91,7 +95,6 @@ export function ChantierStack({ chantier }: ChantierStackProps) {
     if (touchStartX.current === null) return;
     const delta = e.changedTouches[0].clientX - touchStartX.current;
     if (Math.abs(delta) > 50) {
-      // swipe gauche → suivante, swipe droit → précédente
       setIdx(i => delta < 0 ? (i + 1) % total : (i - 1 + total) % total);
     }
     touchStartX.current = null;
@@ -153,104 +156,108 @@ export function ChantierStack({ chantier }: ChantierStackProps) {
         </motion.div>
       </div>
 
-      {/* ── Lightbox ── */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex flex-col bg-charcoal/96 backdrop-blur-md"
-            onClick={() => setOpen(false)}
-          >
-            {/* Fermer — hors de la zone scrollable, reste visible en permanence */}
-            <button
+      {/* ── Lightbox — rendu dans document.body via portal pour échapper
+           aux stacking contexts des wrappers Framer Motion parents ── */}
+      {portalRoot && createPortal(
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[200] flex flex-col bg-charcoal/96 backdrop-blur-md"
               onClick={() => setOpen(false)}
-              className="flex-none self-end m-5 text-primary-foreground/60 hover:text-primary-foreground transition-colors"
-              aria-label="Fermer"
             >
-              <X className="h-8 w-8" />
-            </button>
-
-            {/* Contenu scrollable */}
-            <div
-              className="flex-1 overflow-y-auto flex flex-col items-center justify-center px-4 sm:px-6 pb-6 gap-4"
-              onClick={e => e.stopPropagation()}
-            >
-              {/* En-tête */}
-              <div className="text-center px-4 w-full max-w-5xl">
-                <p className="font-display font-bold text-primary-foreground text-xl">{chantier.nom}</p>
-                {chantier.description && (
-                  <p className="text-primary-foreground/50 text-sm mt-1 max-w-lg mx-auto leading-relaxed">
-                    {chantier.description}
-                  </p>
-                )}
-              </div>
-
-            {/* Zone image + chevrons (desktop) — swipe (mobile) */}
-            <div
-              className="flex items-center gap-3 sm:gap-5 w-full max-w-5xl"
-            >
-              {/* Chevron gauche — desktop uniquement */}
+              {/* Bouton fermer — flex-none, hors du scroll, toujours visible */}
               <button
-                onClick={prev}
-                aria-label="Photo précédente"
-                className={`hidden sm:flex shrink-0 items-center justify-center w-12 h-12 rounded-full bg-primary/30 hover:bg-primary/60 transition-colors backdrop-blur-sm ${total <= 1 ? "invisible" : ""}`}
+                onClick={() => setOpen(false)}
+                className="flex-none self-end m-5 text-primary-foreground/60 hover:text-primary-foreground transition-colors"
+                aria-label="Fermer"
               >
-                <ChevronLeft className="h-6 w-6" style={{ color: 'hsl(85, 45%, 65%)', stroke: 'hsl(85, 45%, 65%)' }} />
+                <X className="h-8 w-8" />
               </button>
 
-              {/* Image avec swipe tactile */}
-              <div
-                className="flex-1 min-w-0"
-                onTouchStart={onTouchStart}
-                onTouchEnd={onTouchEnd}
-              >
-                <AnimatePresence mode="wait">
-                  <motion.img
-                    key={idx}
-                    src={chantier.photos[idx].displayImg}
-                    alt={chantier.photos[idx].title || chantier.nom}
-                    className="rounded-2xl shadow-2xl mx-auto object-contain"
-                    style={{ maxHeight: "65vh", maxWidth: "100%", width: "auto" }}
-                    initial={{ opacity: 0, x: 30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -30 }}
-                    transition={{ duration: 0.2 }}
-                    draggable={false}
-                  />
-                </AnimatePresence>
+              {/* Zone scrollable */}
+              <div className="flex-1 overflow-y-auto" onClick={e => e.stopPropagation()}>
+                <div className="flex flex-col items-center justify-center min-h-full px-4 sm:px-6 pb-8 gap-4">
 
-                {/* Compteur */}
-                {total > 1 && (
-                  <div className="flex justify-end mt-3 px-1">
-                    <span className="text-primary-foreground/35 text-sm font-display tabular-nums">
-                      {idx + 1} / {total}
-                    </span>
+                  {/* En-tête */}
+                  <div className="text-center w-full max-w-5xl">
+                    <p className="font-display font-bold text-primary-foreground text-xl">{chantier.nom}</p>
+                    {chantier.description && (
+                      <p className="text-primary-foreground/50 text-sm mt-1 max-w-lg mx-auto leading-relaxed">
+                        {chantier.description}
+                      </p>
+                    )}
                   </div>
-                )}
 
-                {/* Hint swipe — mobile uniquement */}
-                {total > 1 && (
-                  <p className="sm:hidden text-center text-primary-foreground/25 text-xs mt-2">
-                    ← glissez pour naviguer →
-                  </p>
-                )}
+                  {/* Zone image + chevrons (desktop) — swipe (mobile) */}
+                  <div className="flex items-center gap-3 sm:gap-5 w-full max-w-5xl">
+
+                    {/* Chevron gauche — desktop uniquement */}
+                    <button
+                      onClick={prev}
+                      aria-label="Photo précédente"
+                      className={`hidden sm:flex shrink-0 items-center justify-center w-12 h-12 rounded-full bg-primary/30 hover:bg-primary/60 transition-colors backdrop-blur-sm ${total <= 1 ? "invisible" : ""}`}
+                    >
+                      <ChevronLeft className="h-6 w-6" style={{ color: 'hsl(85, 45%, 65%)', stroke: 'hsl(85, 45%, 65%)' }} />
+                    </button>
+
+                    {/* Image avec swipe tactile */}
+                    <div
+                      className="flex-1 min-w-0"
+                      onTouchStart={onTouchStart}
+                      onTouchEnd={onTouchEnd}
+                    >
+                      <AnimatePresence mode="wait">
+                        <motion.img
+                          key={idx}
+                          src={chantier.photos[idx].displayImg}
+                          alt={chantier.photos[idx].title || chantier.nom}
+                          className="rounded-2xl shadow-2xl mx-auto object-contain"
+                          style={{ maxHeight: "65vh", maxWidth: "100%", width: "auto" }}
+                          initial={{ opacity: 0, x: 30 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -30 }}
+                          transition={{ duration: 0.2 }}
+                          draggable={false}
+                        />
+                      </AnimatePresence>
+
+                      {/* Compteur */}
+                      {total > 1 && (
+                        <div className="flex justify-end mt-3 px-1">
+                          <span className="text-primary-foreground/35 text-sm font-display tabular-nums">
+                            {idx + 1} / {total}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Hint swipe — mobile uniquement */}
+                      {total > 1 && (
+                        <p className="sm:hidden text-center text-primary-foreground/25 text-xs mt-2">
+                          ← glissez pour naviguer →
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Chevron droit — desktop uniquement */}
+                    <button
+                      onClick={next}
+                      aria-label="Photo suivante"
+                      className={`hidden sm:flex shrink-0 items-center justify-center w-12 h-12 rounded-full bg-primary/30 hover:bg-primary/60 transition-colors backdrop-blur-sm ${total <= 1 ? "invisible" : ""}`}
+                    >
+                      <ChevronRight className="h-6 w-6" style={{ color: 'hsl(85, 45%, 65%)', stroke: 'hsl(85, 45%, 65%)' }} />
+                    </button>
+                  </div>
+
+                </div>
               </div>
-
-              {/* Chevron droit — desktop uniquement */}
-              <button
-                onClick={next}
-                aria-label="Photo suivante"
-                className={`hidden sm:flex shrink-0 items-center justify-center w-12 h-12 rounded-full bg-primary/30 hover:bg-primary/60 transition-colors backdrop-blur-sm ${total <= 1 ? "invisible" : ""}`}
-              >
-                <ChevronRight className="h-6 w-6" style={{ color: 'hsl(85, 45%, 65%)', stroke: 'hsl(85, 45%, 65%)' }} />
-              </button>
-            </div>
-            </div>{/* fin contenu scrollable */}
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        portalRoot
+      )}
     </>
   );
 }
