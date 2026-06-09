@@ -153,7 +153,7 @@ function BeforeAfterCard({ item, index, isExpanded, isAnyHovered, onMouseEnter, 
         {/* Before layer */}
         <div className="absolute inset-0 bg-muted">
           {item.before_image_url ? (
-            <Image src={item.before_image_url} alt={`${item.title} — état avant travaux`} fill className="object-cover" sizes="(max-width: 1023px) 100vw, 33vw" />
+            <Image src={item.before_image_url} alt={`${item.title} — état avant travaux`} fill className="object-cover" sizes="(max-width: 639px) 90vw, (max-width: 1023px) 45vw, 33vw" />
           ) : (
             <div className="flex items-center justify-center w-full h-full">
               <div className="text-center">
@@ -171,7 +171,7 @@ function BeforeAfterCard({ item, index, isExpanded, isAnyHovered, onMouseEnter, 
           transition={{ duration: dur, ease: "easeInOut" }}
         >
           {item.after_image_url ? (
-            <Image src={item.after_image_url} alt={`${item.title} — résultat après travaux ValM39`} fill className="object-cover" sizes="(max-width: 1023px) 100vw, 33vw" />
+            <Image src={item.after_image_url} alt={`${item.title} — résultat après travaux ValM39`} fill className="object-cover" sizes="(max-width: 639px) 90vw, (max-width: 1023px) 45vw, 33vw" />
           ) : (
             <div className="flex items-center justify-center w-full h-full relative z-10">
               <div className="text-center">

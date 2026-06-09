@@ -123,7 +123,7 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <head>
-        <link rel="preconnect" href="https://wriwpdmsayhvjjhuotqv.supabase.co" />
+        <link rel="preconnect" href="https://wriwpdmsayhvjjhuotqv.supabase.co" crossOrigin="" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdBusiness) }}
