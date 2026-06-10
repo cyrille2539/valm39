@@ -87,7 +87,7 @@ export function VerticalCarousel({
   const sectionRef = useRef<HTMLDivElement>(null);
   const isMobile   = useIsMobile();
 
-  const effectiveItemHeight = isMobile ? Math.max(160, itemHeight) : itemHeight;
+  const effectiveItemHeight = isMobile ? Math.max(130, itemHeight) : itemHeight;
   const maxScale    = isMobile ? 1.0  : 1.3;
   const scaleStep   = isMobile ? 0.22 : 0.24;
   const opacityStep = 0.4;
