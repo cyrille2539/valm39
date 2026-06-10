@@ -32,7 +32,6 @@ export const metadata: Metadata = {
       "Cuisine, parquet, cloisons, peinture — finition exemplaire pour particuliers, Airbnb, investisseurs et agences. Devis gratuit sous 24h.",
     type: "website",
     url: "https://www.valm39.fr/",
-    images: [{ url: "/og-image.jpg" }],
     locale: "fr_FR",
   },
   twitter: {
@@ -40,7 +39,6 @@ export const metadata: Metadata = {
     title: "ValM39 — Artisan rénovation intérieure dans le Jura (39)",
     description:
       "Cuisine, parquet, cloisons, peinture — finition exemplaire pour particuliers, Airbnb, investisseurs et agences. Devis gratuit sous 24h.",
-    images: ["/og-image.jpg"],
   },
 };
 
