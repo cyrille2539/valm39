@@ -52,7 +52,8 @@ const jsonLdBusiness = {
   description:
     "Artisan spécialiste de la rénovation intérieure haut de gamme dans le Jura (39) : pose de cuisine, pose de parquet, cloisons et peinture. Devis transparent, délais respectés, finition exemplaire.",
   url: "https://www.valm39.fr",
-  telephone: "+33600000000",
+  telephone: "+33786008992",
+  openingHours: ["Mo-Fr 08:00-18:00"],
   email: "contact@valm39.fr",
   priceRange: "€€",
   image: "https://www.valm39.fr/og-image.jpg",
