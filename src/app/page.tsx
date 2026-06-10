@@ -1,8 +1,9 @@
 'use client';
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowRight, Award } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { PhoneLink } from "@/components/PhoneLink";
 import { ContactForm } from "@/components/ContactForm";
 import { MobileMenu } from "@/components/MobileMenu";
@@ -100,9 +101,34 @@ const services = [
   },
 ];
 
+const SERVICE_CATEGORY: Record<string, string> = {
+  "Pose de cuisine":     "cuisine",
+  "Pose de parquet":     "parquet",
+  "Pose de cloisons":    "cloisons",
+  "Peinture intérieure": "peinture",
+  "Électricité":         "électricité",
+};
+
 export default function Home() {
-  const [hoveredService, setHoveredService] = useState<number | null>(null);
+  const [hoveredService,  setHoveredService]  = useState<number | null>(null);
   const [hoveredSolution, setHoveredSolution] = useState<number | null>(null);
+  const [catImages,       setCatImages]       = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    supabase
+      .from("media_items")
+      .select("category, image_url, before_image_url, after_image_url" as any)
+      .contains("display_on", ["cat_card"])
+      .then(({ data }) => {
+        if (!data?.length) return;
+        const overrides: Record<string, string> = {};
+        for (const item of data as any[]) {
+          const url = item.image_url ?? item.after_image_url ?? item.before_image_url;
+          if (url && item.category) overrides[item.category] = url;
+        }
+        setCatImages(overrides);
+      });
+  }, []);
 
   usePageMeta({
     title: "ValM39 — Artisan rénovation intérieure dans le Jura (39)",
@@ -256,7 +282,7 @@ export default function Home() {
                 stat={service.stat}
                 gradient={service.gradient}
                 accentColor={service.accentColor}
-                image={service.image}
+                image={catImages[SERVICE_CATEGORY[service.title]] ?? service.image}
                 isExpanded={hoveredService === i}
                 isAnyHovered={hoveredService !== null}
                 onMouseEnter={() => setHoveredService(i)}
@@ -274,7 +300,7 @@ export default function Home() {
                 stat={service.stat}
                 gradient={service.gradient}
                 accentColor={service.accentColor}
-                image={service.image}
+                image={catImages[SERVICE_CATEGORY[service.title]] ?? service.image}
                 isExpanded={false}
                 isAnyHovered={false}
                 onMouseEnter={() => {}}
