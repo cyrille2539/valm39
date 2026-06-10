@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type ItemData = string | { title: string; desc: string };
 
@@ -10,15 +11,21 @@ function CarouselItem({
   index,
   activePos,
   itemHeight,
+  maxScale,
+  scaleStep,
+  opacityStep,
 }: {
   item: ItemData;
   index: number;
   activePos: MotionValue<number>;
   itemHeight: number;
+  maxScale: number;
+  scaleStep: number;
+  opacityStep: number;
 }) {
   const y       = useTransform(activePos, (a) => (index - a) * itemHeight);
-  const scale   = useTransform(activePos, (a) => Math.max(0.78, 1.3 - Math.abs(index - a) * 0.24));
-  const opacity = useTransform(activePos, (a) => Math.max(0,    1   - Math.abs(index - a) * 0.4));
+  const scale   = useTransform(activePos, (a) => Math.max(0.78, maxScale  - Math.abs(index - a) * scaleStep));
+  const opacity = useTransform(activePos, (a) => Math.max(0,    1         - Math.abs(index - a) * opacityStep));
 
   const isRich = typeof item === "object";
 
@@ -78,6 +85,12 @@ export function VerticalCarousel({
   itemHeight = 110,
 }: VerticalCarouselProps) {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const isMobile   = useIsMobile();
+
+  const effectiveItemHeight = isMobile ? Math.max(160, itemHeight) : itemHeight;
+  const maxScale    = isMobile ? 1.0  : 1.3;
+  const scaleStep   = isMobile ? 0.22 : 0.24;
+  const opacityStep = 0.4;
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -108,7 +121,10 @@ export function VerticalCarousel({
               item={item}
               index={i}
               activePos={activePos}
-              itemHeight={itemHeight}
+              itemHeight={effectiveItemHeight}
+              maxScale={maxScale}
+              scaleStep={scaleStep}
+              opacityStep={opacityStep}
             />
           ))}
         </div>

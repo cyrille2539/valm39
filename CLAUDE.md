@@ -44,7 +44,7 @@ Next.js 16 App Router, React 19, TypeScript. Toutes les pages sont dans `src/app
 
 ### Providers globaux
 
-`src/app/layout.tsx` — JSON-LD SEO, métadonnées globales, `lang="fr"`.  
+`src/app/layout.tsx` — JSON-LD SEO, métadonnées globales, `lang="fr"`, fonts `next/font/google` (Lora + DM Sans), `<link rel="preconnect">` Supabase.  
 `src/app/providers.tsx` — `QueryClientProvider` (TanStack Query v5), `TooltipProvider`, `AuthProvider`, deux toasters (`Toaster` Radix + `Sonner`).
 
 ### Supabase
@@ -98,11 +98,12 @@ La courbe d'animation standard est `cubic-bezier(0.22, 1, 0.36, 1)` (easing spri
 - Marge viewport sûre : `card_center_from_edge ≥ |x| + W/2×cos(θ) + H/2×sin(θ)`. Avec `px-6` section + `px-6` grille = 48 px total, angle ≤ 8° et x = 0 tient sur 375 px.
 - **Z-index** : `position: relative` + `zIndex: hovered ? 10 : 1` sur le wrapper root. `hover:z-10 relative` sur les `motion.div` wrappers de la grille (pas en interne — le `motion.div` crée un stacking context qui confinerait le z-index enfant).
 - **Titre** : `marginTop` animé via Framer Motion spring (16 → 44 px), **uniquement si `cards.length > 1`** — les cartes fan en `rotate ±12°, y +6` débordent de ~34 px sous le container et couvrent le titre avec `mt-4` seul.
-- Lightbox intégrée avec chevrons `hidden sm:flex` et swipe touch (delta > 50 px).
+- **Lightbox** — rendu via `createPortal(…, document.body)` pour échapper aux stacking contexts créés par les `transform` CSS de Framer Motion sur les wrappers parents (sinon la nav `z-50` passe au-dessus du lightbox `z-[200]`). Le `portalRoot` est initialisé dans un `useEffect` pour la compatibilité SSR. Fond `bg-black/90 backdrop-blur-sm` + textes `text-white` explicites — **ne pas utiliser `bg-charcoal/96`** (le modificateur d'opacité Tailwind ne fonctionne pas sur les couleurs définies comme `hsl(var(--custom))` dans le config). Chevrons `hidden sm:flex`, swipe touch (delta > 50 px), bouton X en `flex-none self-end` hors de la zone scrollable.
 
 **`ServiceCard`** — expand-on-hover avec ratio d'or.
 - `cardRef` doit être sur l'élément qui EST le flex item direct.
 - `isAnyHovered` verrouille toutes les cartes simultanément. Conteneur flex : `items-start`.
+- Image : `<Image fill>` next/image avec `sizes="(max-width: 1023px) 50vw, 20vw"` (grille 2-col mobile / flex-5 desktop). Le `transform: scale()` d'expansion est passé via le prop `style` de `<Image>`.
 
 **`BeforeAfterSection`** — exporté par défaut. `BeforeAfterGallery.tsx` est un stub vide — toujours importer depuis `BeforeAfterSection.tsx`.
 - Animation `clipPath` : split → covering (4s) → shimmer (1.5s × 2). Shimmer en `rgba(255,255,255,...)`, pas en `hsl(var(--primary))`.
@@ -165,12 +166,14 @@ Palette Tailwind custom (`src/app/globals.css`) :
 - `olive` / `olive-light` — accent italique hero
 - `primary` (hsl 85) — vert olive, CTA et eyebrows
 
-Typographie : `font-display` = Lora, `font-body` = DM Sans.  
+Typographie : `font-display` = Lora, `font-body` = DM Sans. Chargées via `next/font/google` dans `layout.tsx` (auto-hébergées au build, sans `@import` bloquant). Les variables CSS `--font-lora` et `--font-dm-sans` sont appliquées sur `<body>` ; Tailwind les référence via `var(--font-lora)` / `var(--font-dm-sans)` dans `tailwind.config.ts`.  
 Eyebrow : `text-primary font-display italic text-5xl`. Titre : `font-display font-bold text-charcoal-soft text-3xl sm:text-4xl`.
 
 ### Images
 
 Toutes dans `public/assets/`. Logo principal : `logo-valm391.png` (badge circulaire lynx, fond transparent). Favicon : `src/app/icon.png` (même image).
+
+`next.config.ts` : `formats: ["image/webp"]` uniquement — l'AVIF est intentionnellement absent (décodage ~3× plus lent sur CPU mobile, nuit au LCP). Utiliser `<Image fill>` de `next/image` pour toutes les images non-logo. Pour les overlays et fonds sombres, utiliser `bg-black/X` plutôt que `bg-charcoal/X` (le modificateur d'opacité Tailwind ne fonctionne pas sur les couleurs CSS variables custom).
 
 Pour générer de nouvelles images via fal.ai : le MCP est configuré dans `f:\sitemario\.mcp.json` avec la clé FAL_KEY. Modèle recommandé : `fal-ai/flux/dev`.
 
