@@ -26,7 +26,7 @@ const stagger = {
 export default function CoupDeCoeur() {
   usePageMeta({
     title: "Rénovation Airbnb & Gîtes dans le Jura — ValM39",
-    description: "Transformez votre location saisonnière en coup de cœur des voyageurs. +20 à +40 % sur votre tarif à la nuitée. ROI en 3 à 6 mois. Artisan ValM39, Jura (39).",
+    description: "Transformez votre location saisonnière en coup de cœur des voyageurs. +20 à +40 % sur votre tarif à la nuitée. ROI en 3 à 6 mois. ValM39, Jura (39).",
     canonical: "https://www.valm39.fr/locations-saisonnieres",
     ogUrl: "https://www.valm39.fr/locations-saisonnieres",
   });

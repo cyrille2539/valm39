@@ -23,7 +23,7 @@ const stagger = {
 
 export default function AgencesImmobilieres() {
   usePageMeta({
-    title: "Rénovation avant-vente pour agences immobilières — ValM39",
+    title: "Rénovation avant-vente agences immobilières — ValM39",
     description: "Vendez plus vite. ValM39 rénove les biens avant mise en vente dans le Jura (39). Délais courts, finitions irréprochables. Partenariat sans engagement.",
     canonical: "https://www.valm39.fr/agences-immobilieres",
     ogUrl: "https://www.valm39.fr/agences-immobilieres",

@@ -109,7 +109,7 @@ const ServiceCard = ({
       {image ? (
         <Image
           src={image}
-          alt={title}
+          alt={`${title} — artisan rénovation Jura (39)`}
           fill
           className="object-cover"
           sizes="(max-width: 1023px) 50vw, 20vw"
