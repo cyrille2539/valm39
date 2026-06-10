@@ -40,7 +40,7 @@ Next.js 16 App Router, React 19, TypeScript. Toutes les pages sont dans `src/app
 
 `page.tsx` (Home) **n'utilise pas** `<Layout>` — nav et footer sont inline. Ne pas changer cette structure.
 
-`AdminDashboard` a 2 onglets : « Médias » (`AdminMedia`) et « Avis » (`AdminTestimonials`).
+`AdminDashboard` a 3 onglets : « Médias » (`AdminMedia`), « Contacts » (`AdminContacts`) et « Avis » (`AdminTestimonials`).
 
 ### Providers globaux
 
@@ -104,12 +104,18 @@ La courbe d'animation standard est `cubic-bezier(0.22, 1, 0.36, 1)` (easing spri
 - `cardRef` doit être sur l'élément qui EST le flex item direct.
 - `isAnyHovered` verrouille toutes les cartes simultanément. Conteneur flex : `items-start`.
 - Image : `<Image fill>` next/image avec `sizes="(max-width: 1023px) 50vw, 20vw"` (grille 2-col mobile / flex-5 desktop). Le `transform: scale()` d'expansion est passé via le prop `style` de `<Image>`.
+- Sur `page.tsx` (Home), les images des ServiceCards sont surchargées au montage par les `media_items` avec `display_on` contenant `"cat_card"` (même requête que `realisations/page.tsx`). Fallback sur les images statiques si aucune photo `cat_card` n'est définie pour la catégorie. Mapping catégorie→titre dans `SERVICE_CATEGORY`.
 
 **`BeforeAfterSection`** — exporté par défaut. `BeforeAfterGallery.tsx` est un stub vide — toujours importer depuis `BeforeAfterSection.tsx`.
 - Animation `clipPath` : split → covering (4s) → shimmer (1.5s × 2). Shimmer en `rgba(255,255,255,...)`, pas en `hsl(var(--primary))`.
 - Le dégradé sombre et le bevel verre sont **en dehors** du `div.overflow-hidden`.
 - Charge les paires depuis Supabase : `.contains("display_on", ["home_before_after"]).not("before_image_url", "is", null).not("after_image_url", "is", null).limit(3)` — jamais de paire incomplète, jamais plus de 3.
 - `maxWidth: "calc(80vh / 1.618)"` sur chaque carte pour plafonner la hauteur à 80 vh quelle que soit la largeur du flex container.
+
+**`VerticalCarousel`** — carousel scroll-driven (`useScroll` + `useTransform`). Items positionnés en `absolute`, décalés via `y = (index - activePos) * itemHeight`.
+- Desktop : `itemHeight=110`, `maxScale=1.3`, `scaleStep=0.24`, `opacityStep=0.4`.
+- Mobile (`useIsMobile()`) : `itemHeight=max(130, prop)`, `maxScale=1.0` (pas d'agrandissement — évite le chevauchement), `scaleStep=0.22`. Même `opacityStep=0.4`.
+- Avec `maxScale=1.3`, les items adjacents (scale ~1.06) **chevauchent toujours** l'item actif — c'est un choix visuel desktop acceptable. Sur mobile scale 1.0 est impératif pour éviter l'overlap.
 
 **`RulerNav`** — navigation desktop. Ordre : Accueil, Réalisations, Locations, Investisseurs, Agences.
 
@@ -177,10 +183,14 @@ Toutes dans `public/assets/`. Logo principal : `logo-valm391.png` (badge circula
 
 Pour générer de nouvelles images via fal.ai : le MCP est configuré dans `f:\sitemario\.mcp.json` avec la clé FAL_KEY. Modèle recommandé : `fal-ai/flux/dev`.
 
+### Notifications email
+
+Route API `src/app/api/notify-contact/route.ts` — appelée en fire-and-forget depuis `ContactForm` après un insert Supabase réussi. Envoie un email formaté via SMTP IONOS (`smtp.ionos.fr:587`, STARTTLS) à `contact@valm39.fr`. Variables d'env requises (Vercel + `.env.local`) : `IONOS_EMAIL`, `IONOS_PASSWORD`. L'échec email n'affecte pas le retour utilisateur.
+
 ### SEO
 
-- `src/app/layout.tsx` — JSON-LD `HomeAndConstructionBusiness` + métadonnées globales
+- `src/app/layout.tsx` — JSON-LD `HomeAndConstructionBusiness` (téléphone, horaires Mo-Fr 08:00-18:00, geo Saint-Claude) + métadonnées globales
+- `src/app/opengraph-image.tsx` — image OG dynamique 1200×630 via `next/og` ImageResponse (logo + identité ValM39 sur fond charcoal). Pas de fichier `og-image.jpg` statique.
 - `public/sitemap.xml`, `public/robots.txt`, `public/llms.txt`
 - `usePageMeta` — title + canonical + OG par page via DOM (hook client-side)
-
-Remplacer `https://www.valm39.fr` par le vrai domaine dans `layout.tsx`, `sitemap.xml`, `robots.txt`, `llms.txt` et tous les appels `usePageMeta`.
+- Domaine de production : `www.valm39.fr` (configuré sur Vercel + DNS IONOS)
