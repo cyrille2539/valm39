@@ -61,6 +61,11 @@ const jsonLdBusiness = {
     addressCountry: "FR",
     postalCode: "39",
   },
+  geo: {
+    "@type": "GeoCoordinates",
+    latitude: 46.3872,
+    longitude: 5.8644,
+  },
   areaServed: {
     "@type": "AdministrativeArea",
     name: "Jura (39)",
