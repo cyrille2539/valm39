@@ -40,6 +40,11 @@ export function ContactForm({
       setError("Une erreur est survenue. Réessayez dans un instant.");
     } else {
       setSuccess(true);
+      fetch("/api/notify-contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, phone, message, source }),
+      }).catch(() => {});
     }
   };
 
